@@ -1,0 +1,3 @@
+name = Entity Reference Autocomplete
+description = "A Form API element type to reference arbitrary entities through an autocomplete textfield"
+core = 7.x
