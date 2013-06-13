@@ -11,7 +11,7 @@
  * Implements hook_menu().
  */
 function entityreference_autocomplete_menu() {
-  $items['entityreference_autocomplete/autocomplete/%/%bundles'] = array(
+  $items['entityreference_autocomplete/autocomplete/%/%entityreference_autocomplete_bundles'] = array(
     'title' => 'Entity Reference Element autocomplete callback',
     'page callback' => 'entityreference_autocomplete_autocomplete_callback',
     'page arguments' => array(2, 3),
@@ -28,7 +28,7 @@ function entityreference_autocomplete_menu() {
  *   The different bundles extracted from the autocomplete path.
  */
 function entityreference_autocomplete_bundles_load($bundles_string) {
-  return empty($bundles_string) ? '*' : explode('+', $bundles_string);
+  return ($bundles_string == '*') ? NULL : explode('+', $bundles_string);
 }
 
 /**
@@ -101,8 +101,9 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
   if (isset($last_label)) {
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
-    // If there's a bundle that is not the wildcard, add it.
-    if ($bundles != '*') {
+
+    // If $bundless it not null, add the entity_bundle condition.
+    if ($bundles) {
       $query->entityCondition('entity_bundle', $bundles, 'IN');
     }
     $entity_info = entity_get_info($entity_type);
