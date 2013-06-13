@@ -11,7 +11,7 @@
  * Implements hook_menu().
  */
 function entityreference_autocomplete_menu() {
-  $items['entityreference_autocomplete/autocomplete/%/%'] = array(
+  $items['entityreference_autocomplete/autocomplete/%/%bundles'] = array(
     'title' => 'Entity Reference Element autocomplete callback',
     'page callback' => 'entityreference_autocomplete_autocomplete_callback',
     'page arguments' => array(2, 3),
@@ -19,6 +19,16 @@ function entityreference_autocomplete_menu() {
     'type' => MENU_CALLBACK,
   );
   return $items;
+}
+
+/**
+ * Returns a list of bundles from the entityreference_autocomplete path.
+ *
+ * @return array
+ *   The different bundles extracted from the autocomplete path.
+ */
+function entityreference_autocomplete_bundles_load($bundles_string) {
+  return empty($bundles_string) ? '*' : explode('+', $bundles_string);
 }
 
 /**
@@ -37,7 +47,7 @@ function entityreference_autocomplete_element_info() {
     // Custom attributes. Set to false so that nothing happens if a dev doesn't
     // specify them.
     '#era_entity_type' => FALSE,
-    '#era_bundle' => FALSE,
+    '#era_bundles' => FALSE,
     '#era_cardinality' => 1,
   );
   return $types;
@@ -60,8 +70,14 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
     // Set the autocomplete path based on the entity type to look for.
     $autocomplete_path = $base_url . '/entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
 
-    // If there's bundle filtering, add it. Otherwise, set a wildcard.
-    $autocomplete_path .= $element['#era_bundle'] ? '/' . $element['#era_bundle'] : '/*';
+    // If there's bundle filtering, add it. Otherwise, set a wildcard. Also,
+    // force the property to be an array.
+    if (!empty($element['#era_bundles']) && is_array($element['#era_bundles'])) {
+      $autocomplete_path .= '/' . implode('+', $element['#era_bundles']);
+    }
+    else {
+      $autocomplete_path .= '/*';
+    }
 
     $element['#autocomplete_path'] = $autocomplete_path;
   }
@@ -71,7 +87,7 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
 /**
  * Page callback for the entityreference elements autocomplete path.
  */
-function entityreference_autocomplete_autocomplete_callback($entity_type, $bundle, $string = '') {
+function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $string = '') {
   $matches = array();
 
   // The user enters a comma-separated list of entity labels. Autocomplete only
@@ -86,8 +102,8 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
     // If there's a bundle that is not the wildcard, add it.
-    if ($bundle != '*') {
-      $query->entityCondition('entity_bundle', $bundle);
+    if ($bundles != '*') {
+      $query->entityCondition('entity_bundle', $bundles, 'IN');
     }
     $entity_info = entity_get_info($entity_type);
 
@@ -170,9 +186,9 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
           break;
         }
         // If a specific bundle type was specified.
-        else if ($element['#era_bundle']) {
+        else if ($element['#era_bundles']) {
           // Invalid bundle, set an error.
-          if ($element['#era_bundle'] !== $bundle) {
+          if ($element['#era_bundles'] !== $bundle) {
             $error = TRUE;
             break;
           }
