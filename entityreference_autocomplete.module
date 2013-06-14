@@ -98,14 +98,18 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
   }
 
   if (isset($last_label)) {
+    // Get entity metadata, to be used for some checks.
+    $entity_info = entity_get_info($entity_type);
+
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
 
-    // If $bundless is not null, add the 'bundle' condition.
-    if ($bundles) {
+    // If $bundless is not null, add the 'bundle' condition. Also, save some
+    // pain to anyone trying to specify a bundle when the entity has no actual
+    // key for bundles.
+    if ($bundles  && !empty($entity_info['entity keys']['bundle'])) {
       $query->entityCondition('bundle', $bundles);
     }
-    $entity_info = entity_get_info($entity_type);
 
     // Need to fetch the column used as entity label.
     if (isset($entity_info['entity keys']['label'])) {
