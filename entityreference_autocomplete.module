@@ -66,9 +66,8 @@ function entityreference_autocomplete_element_info() {
  */
 function entityreference_autocomplete_process_entityreference($element, &$form_state) {
   if ($element['#era_entity_type']) {
-    global $base_url;
     // Set the autocomplete path based on the entity type to look for.
-    $autocomplete_path = $base_url . '/entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
+    $autocomplete_path = 'entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
 
     // If there's bundle filtering, add it. Otherwise, set a wildcard. Also,
     // force the property to be an array.
