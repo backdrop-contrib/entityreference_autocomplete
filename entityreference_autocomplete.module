@@ -101,7 +101,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
 
-    // If $bundless it not null, add the 'bundle' condition.
+    // If $bundless is not null, add the 'bundle' condition.
     if ($bundles) {
       $query->entityCondition('bundle', $bundles);
     }
