@@ -190,12 +190,10 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
           break;
         }
         // If a specific bundle type was specified.
-        else if ($element['#era_bundles']) {
+        else if ($element['#era_bundles'] && !in_array($bundle, $element['#era_bundles'])) {
           // Invalid bundle, set an error.
-          if ($element['#era_bundles'] !== $bundle) {
-            $error = TRUE;
-            break;
-          }
+          $error = TRUE;
+          break;
         }
 
         // Finally, check if the entity label is the same as the one entered by the user.
