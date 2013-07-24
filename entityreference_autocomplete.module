@@ -78,6 +78,17 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
       $autocomplete_path .= '/*';
     }
 
+    // If there's a default value, transform it into a proper label.
+    // TODO: Check if this can be set on a preprocess function, when #value has
+    // not been set yet.
+    if (isset($element['#default_value'])) {
+      $reference_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
+      if (!is_null($reference_label)) {
+        $element['#default_value'] = $reference_label;
+        $element['#value'] = $reference_label;
+      }
+    }
+
     $element['#autocomplete_path'] = $autocomplete_path;
   }
   return $element;
@@ -251,4 +262,31 @@ function entityreference_autocomplete_explode_tags($tags) {
   preg_match_all($regexp, $tags, $matches);
   $typed_tags = array_unique($matches[1]);
   return $typed_tags;
+}
+
+/**
+ *  Returns the label to be set for a reference field.
+ *
+ * @param $entity_type
+ *   The type of the entity being referenced.
+ * @param $entity_id
+ *   The ID of the Entity being referenced.
+ *
+ * @return String
+ *   The assembled label for the reference.
+ */
+function entityreference_autocomplete_label_for_reference($entity_type, $entity_id) {
+  if ($entity_referenced = entity_load_single($entity_type, $entity_id)) {
+    $reference_label = entity_label($entity_type, $entity_referenced) . ' (' . $entity_id . ')';
+
+    // Names containing commas or quotes must be wrapped in quotes.
+    if (strpos($reference_label, ',') !== FALSE || strpos($reference_label, '"') !== FALSE) {
+      $reference_label = '"' . str_replace('"', '""', $reference_label) . '"';
+    }
+    return $reference_label;
+  }
+  // No entity object loaded, so return NULL.
+  else {
+    return NULL;
+  }
 }
