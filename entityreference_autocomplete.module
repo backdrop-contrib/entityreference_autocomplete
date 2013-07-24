@@ -131,13 +131,13 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       $entities = entity_load($entity_type, array_keys($result[$entity_type]));
       foreach ($entities as $entity_id => $entity) {
         if (entity_access('view', $entity_type, $entity)) {
-          $key = $option = check_plain(entity_label($entity_type, $entity)) . ' (' . $entity_id . ')';
+          $key = $option = entity_label($entity_type, $entity) . ' (' . $entity_id . ')';
           // Names containing commas or quotes must be wrapped in quotes.
           if (strpos($key, ',') !== FALSE || strpos($key, '"') !== FALSE) {
             $key = '"' . str_replace('"', '""', $key) . '"';
           }
 
-          $matches[$prefix . $key] = $option;
+          $matches[$prefix . $key] = check_plain($option);
         }
       }
     }
