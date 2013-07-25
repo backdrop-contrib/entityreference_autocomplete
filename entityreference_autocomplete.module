@@ -40,6 +40,7 @@ function entityreference_autocomplete_element_info() {
     '#size' => 60,
     '#maxlength' => 128,
     '#autocomplete_path' => FALSE,
+    '#value_callback' => 'entityreference_autocomplete_value_callback',
     '#process' => array('ajax_process_form', 'entityreference_autocomplete_process_entityreference'),
     '#element_validate' => array('entityreference_autocomplete_validate_entityreference'),
     '#theme' => 'textfield',
@@ -51,6 +52,45 @@ function entityreference_autocomplete_element_info() {
     '#era_cardinality' => 1,
   );
   return $types;
+}
+
+/**
+ * Form element value callback for 'entityreference' element type.
+ *
+ * Turns the #default_value (entity_id expected) into a label reference, leaving
+ * it in the same way that would be returned by the autocomplete callback.
+ *
+ * @param $element
+ *   An associative array containing the properties of the element.
+ * @param $edit
+ *   If the form has been submitted, the value submitted for the element.
+ * @param $form_state
+ *   An associative array containing the $form_state properties.
+ *
+ * @return
+ *   The value to be placed in $element['#value'].
+ *
+ * @see entityreference_autocomplete_element_info()
+ */
+function entityreference_autocomplete_value_callback($element, $edit = FALSE, &$form_state) {
+  // There's no post so $edit comes as FALSE.
+  if ($edit == FALSE) {
+    // If there's a default value, transform it into a proper label.
+    if (isset($element['#default_value'])) {
+      $reference_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
+      // Label assembled.
+      if (!is_null($reference_label)) {
+        return $reference_label;
+      }
+      // This should never be reached, but if it's, return whatever default
+      // value was specified.
+      else {
+        return $element['#default_value'];
+      }
+    }
+  }
+  // The user submitted a value for the element. Return it as is.
+  return $edit;
 }
 
 /**
@@ -76,17 +116,6 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
     }
     else {
       $autocomplete_path .= '/*';
-    }
-
-    // If there's a default value, transform it into a proper label.
-    // TODO: Check if this can be set on a preprocess function, when #value has
-    // not been set yet.
-    if (isset($element['#default_value'])) {
-      $reference_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
-      if (!is_null($reference_label)) {
-        $element['#default_value'] = $reference_label;
-        $element['#value'] = $reference_label;
-      }
     }
 
     $element['#autocomplete_path'] = $autocomplete_path;
