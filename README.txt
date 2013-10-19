@@ -9,6 +9,7 @@ CONTENTS OF THIS FILE
  * INTRODUCTION
  * INSTALLATION
  * USAGE
+ * ELEMENT PROPERTIES
  * ROADMAP
 
 
@@ -19,6 +20,7 @@ This module defines a new form element type, called "entityreference", that
 allows developers to add autocomplete fields to forms, so that users can
 reference any entity in the same way they would do through an Entity Reference
 field.
+
 
 INSTALLATION
 ------------
@@ -54,6 +56,29 @@ After installing the module:
 
   3. When the form is rendered, you should have the autocomplete field ready to
      use.
+
+  4. For a detailed explanation of the meaning of every '#era_{property}'
+     property, see the "ELEMENT PROPERTIES" section of this README.
+
+
+ELEMENT PROPERTIES
+------------------
+
+Explanation of the custom properties used in a 'entityreference' form element:
+
+'#era_entity_type':  The Entity Type to be referenced: Like "user", "node",
+                     "comment", "file", "taxonomy_term", etc...
+
+'#era_bundles':      Serves to specify that only entities of a given bundle will
+                     be returned in the autocomplete field. For nodes, it would
+                     be the content type, like "story", "page", etc...
+
+'#era_cardinality':  The maximum number of items (references) that the field
+                     will accept. The user will be able to reference more items
+                     than this number in the browser, but then the form won't
+                     validate on submission, and an error message will appear on
+                     the page telling him about this restriction.
+
 
 ROADMAP
 -------
