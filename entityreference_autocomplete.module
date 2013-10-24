@@ -57,8 +57,9 @@ function entityreference_autocomplete_element_info() {
 /**
  * Form element value callback for 'entityreference' element type.
  *
- * Turns the #default_value (entity_id expected) into a label reference, leaving
- * it in the same way that would be returned by the autocomplete callback.
+ * Turns the #default_value (entity ids expected) into proper reference labels,
+ * leaving the references in the same way that they would be returned by the
+ * autocomplete callback.
  *
  * @param $element
  *   An associative array containing the properties of the element.
@@ -75,12 +76,24 @@ function entityreference_autocomplete_element_info() {
 function entityreference_autocomplete_value_callback($element, $edit = FALSE, &$form_state) {
   // There's no post so $edit comes as FALSE.
   if ($edit == FALSE) {
-    // If there's a default value, transform it into a proper label.
+    // If there are any default values, transform them into proper labels.
     if (isset($element['#default_value'])) {
-      $reference_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
-      // Label assembled.
-      if (!is_null($reference_label)) {
-        return $reference_label;
+      // Only one entity referenced.
+      if (is_int($element['#default_value'])) {
+        $references_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
+      }
+      // Multiple entities referenced.
+      else if (is_array($element['#default_value'])) {
+        $referenced_labels = array();
+        foreach ($element['#default_value'] as $entity_id) {
+          $referenced_labels[] = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $entity_id);
+          $references_label = implode(', ', array_filter($referenced_labels));
+        }
+      }
+
+      // Labels assembled.
+      if (!is_null($references_label)) {
+        return $references_label;
       }
       // This should never be reached, but if it's, return whatever default
       // value was specified.
