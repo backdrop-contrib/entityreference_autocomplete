@@ -64,7 +64,8 @@ After installing the module:
 ELEMENT PROPERTIES
 ------------------
 
-Explanation of the custom properties used in a 'entityreference' form element:
+Explanation of the custom properties used in an 'entityreference' form element,
+and any Form API standard properties which use might not be clear:
 
 '#era_entity_type':  The Entity Type to be referenced: Like "user", "node",
                      "comment", "file", "taxonomy_term", etc...
@@ -78,6 +79,11 @@ Explanation of the custom properties used in a 'entityreference' form element:
                      than this number in the browser, but then the form won't
                      validate on submission, and an error message will appear on
                      the page telling him about this restriction.
+
+'#default_value':    If references to any entities are provided by default, it
+                     should be as Entity IDs. For single values, just pass the
+                     ID of the referenced entity. For multiple values, an array
+                     of Entity IDs is expected.
 
 
 ROADMAP
