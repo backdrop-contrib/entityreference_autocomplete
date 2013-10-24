@@ -169,6 +169,12 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
 
     if (!empty($result[$entity_type])) {
       $entities = entity_load($entity_type, array_keys($result[$entity_type]));
+      // $context will hold the metadata of entities found, so that modules
+      // can alter the results in any way they want.
+      $context = array();
+
+      // Iterate through all entities retrieved and process the data to return
+      // it as expected by Drupal javascript.
       foreach ($entities as $entity_id => $entity) {
         if (entity_access('view', $entity_type, $entity)) {
           $key = $option = entity_label($entity_type, $entity) . ' (' . $entity_id . ')';
@@ -177,11 +183,28 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
             $key = '"' . str_replace('"', '""', $key) . '"';
           }
 
+
+          // $prefix . $key is the value that will be set in the textfield in
+          // the browser, whereas $option is the html that is shown to the user
+          // *before* he clicks in one of the options.
           $matches[$prefix . $key] = check_plain($option);
+
+          // Store metadata about the entity returned in a variable.
+          list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+          $context[$prefix . $key] = array(
+            'entity_id' => $entity_id,
+            'entity_type' => $entity_type,
+            'entity_bundle' => $bundle,
+            'rendered_html' => check_plain($option),
+          );
         }
       }
     }
   }
+
+  // Let other drupal modules alter the results.
+  drupal_alter('entityreference_autocomplete_matches', $matches, $context);
+  // Finally, output matches in json, as they're are expected by Drupal's ajax.
   drupal_json_output($matches);
 }
 
