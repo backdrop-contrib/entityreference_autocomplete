@@ -273,8 +273,8 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
         }
 
         // Finally, check if the entity label is the same as the one entered by the user.
-        list($entity_label)  = preg_split("/\((\d+)\)$/", $label);
-        if (entity_label($element['#era_entity_type'], $entity) !== trim($entity_label)) {
+        list($entity_label) = preg_split("/\s\((\d+)\)$/", $label);
+        if (entity_label($element['#era_entity_type'], $entity) !== $entity_label) {
           $error = TRUE;
           break;
         }
