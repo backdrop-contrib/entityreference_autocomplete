@@ -79,7 +79,7 @@ function entityreference_autocomplete_value_callback($element, $edit = FALSE, &$
     // If there are any default values, transform them into proper labels.
     if (!empty($element['#default_value'])) {
       // Only one entity referenced.
-      if (is_int($element['#default_value'])) {
+      if (is_numeric($element['#default_value'])) {
         $references_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
       }
       // Multiple entities referenced.
