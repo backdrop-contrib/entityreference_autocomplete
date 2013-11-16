@@ -11,10 +11,10 @@
  * Implements hook_menu().
  */
 function entityreference_autocomplete_menu() {
-  $items['entityreference_autocomplete/autocomplete/%/%entityreference_autocomplete_bundles'] = array(
+  $items['entityreference_autocomplete/autocomplete/%/%entityreference_autocomplete_bundles/%'] = array(
     'title' => 'Entity Reference Element autocomplete callback',
     'page callback' => 'entityreference_autocomplete_autocomplete_callback',
-    'page arguments' => array(2, 3),
+    'page arguments' => array(2, 3, 4),
     'access arguments' => array('access content'),
     'type' => MENU_CALLBACK,
   );
@@ -50,6 +50,10 @@ function entityreference_autocomplete_element_info() {
     '#era_entity_type' => FALSE,
     '#era_bundles' => FALSE,
     '#era_cardinality' => 1,
+    // Specify some sensible defaults for the number of results returned.
+    '#era_query_settings' => array(
+      'limit' => '50',
+    ),
   );
   return $types;
 }
@@ -131,6 +135,7 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
       $autocomplete_path .= '/*';
     }
 
+    $autocomplete_path .= '/' . urlencode(http_build_query($element['#era_query_settings']));
     $element['#autocomplete_path'] = $autocomplete_path;
   }
   return $element;
@@ -139,8 +144,12 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
 /**
  * Page callback for the entityreference elements autocomplete path.
  */
-function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $string = '') {
+function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $encoded_query_settings, $string = '') {
   $matches = array();
+
+  // Get the query settings as if they were a query array, since they're built
+  // with http_build_query().
+  $query_settings = drupal_get_query_array(urldecode($encoded_query_settings));
 
   // The user enters a comma-separated list of entity labels. Autocomplete only
   // the last label.
@@ -178,6 +187,10 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       }
     }
     $query->propertyCondition($label_column, '%' . $last_label . '%', 'LIKE');
+    // Set the maximum number of results returned.
+    if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
+      $query->range(0, $query_settings['limit']);
+    }
     $result = $query->execute();
 
     if (!empty($result[$entity_type])) {

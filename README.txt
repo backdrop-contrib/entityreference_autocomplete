@@ -80,6 +80,21 @@ and any Form API standard properties which use might not be clear:
                      validate on submission, and an error message will appear on
                      the page telling him about this restriction.
 
+'#era_query_settings':  Serves to specify certain settings that will affect the
+                        results returned by the autocomplete callback. This
+                        property MUST be an associative array, in which every
+                        key is the name of a supported setting. At the moment,
+                        the settings supported are:
+
+              - 'limit':  Limits the number of results returned by the callback.
+                          This is useful when there are a lot of entities that
+                          match the text entered by the users, so that the
+                          request doesn't make a big impact when querying the
+                          database (it translates to a $query->range(0, limit)).
+                          The default value is 50, but it can be set to any
+                          integer value. Unset it, or set it to NULL for no
+                          limits.
+
 '#default_value':    If references to any entities are provided by default, it
                      should be as Entity IDs. For single values, just pass the
                      ID of the referenced entity. For multiple values, an array
