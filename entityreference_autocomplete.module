@@ -203,12 +203,9 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       // it as expected by Drupal javascript.
       foreach ($entities as $entity_id => $entity) {
         if (entity_access('view', $entity_type, $entity)) {
-          $key = $option = entity_label($entity_type, $entity) . ' (' . $entity_id . ')';
-          // Names containing commas or quotes must be wrapped in quotes.
-          if (strpos($key, ',') !== FALSE || strpos($key, '"') !== FALSE) {
-            $key = '"' . str_replace('"', '""', $key) . '"';
-          }
-
+          // Get the labels for the key and for the option.
+          $option = entityreference_autocomplete_label_for_reference($entity_type, $entity_id, FALSE);
+          $key = entityreference_autocomplete_label_for_reference($entity_type, $entity_id);
 
           // $prefix . $key is the value that will be set in the textfield in
           // the browser, whereas $option is the html that is shown to the user
@@ -349,17 +346,22 @@ function entityreference_autocomplete_explode_tags($tags) {
  *   The type of the entity being referenced.
  * @param $entity_id
  *   The ID of the Entity being referenced.
+ * @param $quote_wrap
+ *   Whether the label should be wrapped within quotes if it contains commas or
+ *   quotes. defaults to TRUE.
  *
  * @return String
  *   The assembled label for the reference.
  */
-function entityreference_autocomplete_label_for_reference($entity_type, $entity_id) {
+function entityreference_autocomplete_label_for_reference($entity_type, $entity_id, $quote_wrap = TRUE) {
   if ($entity_referenced = entity_load_single($entity_type, $entity_id)) {
     $reference_label = entity_label($entity_type, $entity_referenced) . ' (' . $entity_id . ')';
 
     // Names containing commas or quotes must be wrapped in quotes.
-    if (strpos($reference_label, ',') !== FALSE || strpos($reference_label, '"') !== FALSE) {
-      $reference_label = '"' . str_replace('"', '""', $reference_label) . '"';
+    if ($quote_wrap) {
+      if (strpos($reference_label, ',') !== FALSE || strpos($reference_label, '"') !== FALSE) {
+        $reference_label = '"' . str_replace('"', '""', $reference_label) . '"';
+      }
     }
     return $reference_label;
   }
