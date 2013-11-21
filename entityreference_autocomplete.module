@@ -79,8 +79,8 @@ function entityreference_autocomplete_element_info() {
  * @see entityreference_autocomplete_element_info()
  */
 function entityreference_autocomplete_value_callback($element, $edit = FALSE, &$form_state) {
-  // There's no post so $edit comes as FALSE.
-  if ($edit == FALSE) {
+  // Just process the value when $edit comes as FALSE (no form submission).
+  if ($edit === FALSE) {
     // If there are any default values, transform them into proper labels.
     if (!empty($element['#default_value'])) {
       // Only one entity referenced.
