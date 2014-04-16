@@ -39,6 +39,8 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     }
 
     // Need to fetch the column used as entity label.
+    $label_column = FALSE;
+    // Check if the entity has a label column defined.
     if (isset($entity_info['entity keys']['label'])) {
       $label_column = $entity_info['entity keys']['label'];
     }
@@ -51,6 +53,11 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
           break;
       }
     }
+    // Still no label available, fall back to entity id column.
+    if (!$label_column){
+      $label_column = $entity_info['entity keys']['id'];
+    }
+
     $query->propertyCondition($label_column, '%' . $last_label . '%', 'LIKE');
     // Set the maximum number of results returned.
     if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
