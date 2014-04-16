@@ -8,6 +8,11 @@
  */
 
 /**
+ * Value for 'entityreference' to indicate a field accepts unlimited values.
+ */
+define('ERA_CARDINALITY_UNLIMITED', -1);
+
+/**
  * Implements hook_menu().
  */
 function entityreference_autocomplete_menu() {
@@ -155,7 +160,7 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
 
   // If there are more values than the allowed, set an error and return. No need
   // to validate each of the values.
-  if (count($entity_labels) > $element['#era_cardinality']) {
+  if (($element['#era_cardinality'] !== ERA_CARDINALITY_UNLIMITED) && count($entity_labels) > $element['#era_cardinality']) {
     form_error($element, t('The "!field" field can\'t contain more than !cardinality !format_plural_values.',
       array(
         '!field' => t($element['#title']),

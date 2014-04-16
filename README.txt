@@ -80,6 +80,8 @@ and any Form API standard properties which use might not be clear:
                      validate on submission, and an error message will appear on
                      the page telling him about this restriction.
 
+                     For unlimited values, use ERA_CARDINALITY_UNLIMITED or -1.
+
 '#era_query_settings':  Serves to specify certain settings that will affect the
                         results returned by the autocomplete callback. This
                         property MUST be an associative array, in which every
