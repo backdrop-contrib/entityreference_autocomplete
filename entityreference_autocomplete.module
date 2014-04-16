@@ -202,7 +202,7 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
       }
 
       // Return some basic context of the entity referenced by the user.
-      $values[] = array(
+      $values[$entity_id] = array(
         'entity_id' => $entity_id,
         'entity_label' => entity_label($element['#era_entity_type'], $entity),
         'entity_type' => $element['#era_entity_type'],
