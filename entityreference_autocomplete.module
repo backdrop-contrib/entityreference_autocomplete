@@ -44,7 +44,6 @@ function entityreference_autocomplete_element_info() {
   $types['entityreference'] = array(
     '#input' => TRUE,
     '#size' => 60,
-    '#maxlength' => 128,
     '#autocomplete_path' => FALSE,
     '#value_callback' => 'entityreference_autocomplete_value_callback',
     '#process' => array('ajax_process_form', 'entityreference_autocomplete_process_entityreference'),
