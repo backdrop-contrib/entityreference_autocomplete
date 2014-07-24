@@ -101,7 +101,7 @@ function entityreference_autocomplete_value_callback($element, $edit = FALSE, &$
       }
 
       // Labels assembled.
-      if (!is_null($references_label)) {
+      if (!empty($references_label)) {
         return $references_label;
       }
       // This should never be reached, but if it's, return whatever default
