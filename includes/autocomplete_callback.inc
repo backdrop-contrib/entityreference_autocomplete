@@ -34,31 +34,14 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     // If $bundless is not null, add the 'bundle' condition. Also, save some
     // pain to anyone trying to specify a bundle when the entity has no actual
     // key for bundles.
-    if ($bundles  && !empty($entity_info['entity keys']['bundle'])) {
+    if ($bundles && !empty($entity_info['entity keys']['bundle'])) {
       $query->entityCondition('bundle', $bundles);
     }
 
-    // Need to fetch the column used as entity label.
-    $label_column = FALSE;
-    // Check if the entity has a label column defined.
-    if (isset($entity_info['entity keys']['label'])) {
-      $label_column = $entity_info['entity keys']['label'];
-    }
-    // Interestingly that Drupal's core doesn't define any label for users, is
-    // that considered a core bug? TODO: Move this to a more proper place.
-    else {
-      switch ($entity_type) {
-        case 'user':
-          $label_column = 'name';
-          break;
-      }
-    }
-    // Still no label available, fall back to entity id column.
-    if (!$label_column){
-      $label_column = $entity_info['entity keys']['id'];
-    }
-
+    // Fetch the column to use as label.
+    $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
     $query->propertyCondition($label_column, '%' . $last_label . '%', 'LIKE');
+
     // Set the maximum number of results returned.
     if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
       $query->range(0, $query_settings['limit']);
