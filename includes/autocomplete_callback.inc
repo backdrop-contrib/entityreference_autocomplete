@@ -12,9 +12,9 @@
 function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $encoded_query_settings, $string = '') {
   $matches = array();
 
-  // Get the query settings as if they were a query array, since they're built
-  // with http_build_query().
-  $query_settings = drupal_get_query_array(urldecode($encoded_query_settings));
+  // Decode the query settings passed and then parse the result string to get
+  // the actual settings array.
+  parse_str(urldecode($encoded_query_settings), $query_settings);
 
   // The user enters a comma-separated list of entity labels. Autocomplete only
   // the last label.
@@ -41,6 +41,13 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     // Fetch the column to use as label.
     $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
     $query->propertyCondition($label_column, '%' . $last_label . '%', 'LIKE');
+
+    // Set property conditions, if any.
+    if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
+      foreach($query_settings['property_conditions'] as $property_condition) {
+        $query->propertyCondition($property_condition[0], $property_condition[1], $property_condition[2]);
+      }
+    }
 
     // Set the maximum number of results returned.
     if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {

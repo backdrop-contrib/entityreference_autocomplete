@@ -140,7 +140,10 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
       $autocomplete_path .= '/*';
     }
 
-    $autocomplete_path .= '/' . urlencode(http_build_query($element['#era_query_settings']));
+    // Merge effective settings with the default settings array.
+    $element_info = entityreference_autocomplete_element_info();
+    $query_settings = array_merge($element_info['entityreference']['#era_query_settings'], $element['#era_query_settings']);
+    $autocomplete_path .= '/' . urlencode(http_build_query($query_settings));
     $element['#autocomplete_path'] = $autocomplete_path;
   }
   return $element;
@@ -155,6 +158,7 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
   $labels_string = $element['#value'];
   $input_labels = drupal_explode_tags($labels_string);
   $entity_type = $element['#era_entity_type'];
+  $query_settings = $element['#era_query_settings'];
   $values = array();
 
   // If there are more values than the allowed, set an error and return. No need
@@ -181,6 +185,14 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
     }
     $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
     $query->propertyCondition($label_column, $entity_label);
+    // Add the property conditions declared.
+    if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
+      foreach($query_settings['property_conditions'] as $property_condition) {
+        $operator = isset($property_condition[2]) ? $property_condition[2] : NULL;
+        $query->propertyCondition($property_condition[0], $property_condition[1], $operator);
+      }
+    }
+
     $matching_entities = $query->execute();
 
     // No matches found.

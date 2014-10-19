@@ -52,6 +52,13 @@ After installing the module:
           '#era_entity_type' => 'user',  // Mandatory.
           '#era_bundles' => array(), // Optional (Any bundle by default).
           '#era_cardinality' => 3,       // Optional (1 By default).
+          '#era_query_settings' => array(
+            'limit' => 15, // Default is 50.
+            'property_conditions' => array(
+              // 'entity property', 'filter value', 'operator'.
+              array('uid', 30, '>'),
+            ),
+          ),
         );
 
   3. When the form is rendered, you should have the autocomplete field ready to
@@ -97,6 +104,20 @@ and any Form API standard properties which use might not be clear:
                           integer value. Unset it, or set it to NULL for no
                           limits.
 
+              - 'property_conditions':  Allows to filter the values returned in
+                          the query, by any property of the entity type. This
+                          property is meant to be an array, in which each
+                          element is an array of the arguments to pass to the
+                          propertyCondition() method of the EntityFieldQuery.
+                          Example of use:
+
+                                '#era_query_settings' => array(
+                                  'property_conditions' => array(
+                                    // 'entity property', 'filter value', 'operator'.
+                                    array('uid', 5, '<'),
+                                  ),
+                                ),
+
 '#default_value':    If references to any entities are provided by default, it
                      should be as Entity IDs. For single values, just pass the
                      ID of the referenced entity. For multiple values, an array
@@ -106,10 +127,4 @@ and any Form API standard properties which use might not be clear:
 ROADMAP
 -------
 
-TODO: Try to get entities from the label on validate function, when users don't
-use the autocomplete widget and simply enters a value manually.
-
-The following features might be added soon:
-
- * Filtering by any column of the entity table (instead of just the label).
  * Filtering by the value of any field of the entity.
