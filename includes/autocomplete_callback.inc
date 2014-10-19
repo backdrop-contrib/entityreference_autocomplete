@@ -49,6 +49,18 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       }
     }
 
+    // Add the field conditions declared.
+    if (!empty($query_settings['field_conditions']) && is_array($query_settings['field_conditions'])) {
+      foreach($query_settings['field_conditions'] as $field_condition) {
+        $column = isset($field_condition[1]) ? $field_condition[1] : NULL;
+        $value = isset($field_condition[2]) ? $field_condition[2] : NULL;
+        $operator = isset($field_condition[3]) ? $field_condition[3] : NULL;
+        $delta_group = isset($field_condition[4]) ? $field_condition[4] : NULL;
+        $language_group = isset($field_condition[5]) ? $field_condition[5] : NULL;
+        $query->fieldCondition($field_condition[0], $column, $value, $operator, $delta_group, $language_group);
+      }
+    }
+
     // Set the maximum number of results returned.
     if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
       $query->range(0, $query_settings['limit']);

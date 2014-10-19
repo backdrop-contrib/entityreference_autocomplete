@@ -58,6 +58,10 @@ After installing the module:
               // 'entity property', 'filter value', 'operator'.
               array('uid', 30, '>'),
             ),
+            'field_contitions' => array(
+              // 'field name', 'column', 'value', 'op', 'delta', 'language'.
+              array('field_test_field', 'value', 'test'),
+            ),
           ),
         );
 
@@ -104,7 +108,7 @@ and any Form API standard properties which use might not be clear:
                           integer value. Unset it, or set it to NULL for no
                           limits.
 
-              - 'property_conditions':  Allows to filter the values returned in
+              - 'property_conditions':  Allows to filter the results returned in
                           the query, by any property of the entity type. This
                           property is meant to be an array, in which each
                           element is an array of the arguments to pass to the
@@ -113,18 +117,31 @@ and any Form API standard properties which use might not be clear:
 
                                 '#era_query_settings' => array(
                                   'property_conditions' => array(
-                                    // 'entity property', 'filter value', 'operator'.
+                                    // 'entity property', 'value', 'operator'.
                                     array('uid', 5, '<'),
                                   ),
                                 ),
+
+              - 'field_conditions':  Allows to filter the results returned in
+                          the query, based on the value of any field of the of
+                          the entity. This property is meant to be an array, in
+                          which each element is an array of the arguments to
+                          pass to the fieldCondition() method of the
+                          EntityFieldQuery class.
+                          Example of use:
+
+                                '#era_query_settings' => array(
+                                  'field_conditions' => array(
+                                    // 'field name', 'column', 'value'.
+                                    array('field_test_field', 'value', 'test'),
+                                  ),
+                                ),
+
+                          For further information, see the documentation of the
+                          fieldCondition() method of the EntityFieldQuery class.
+
 
 '#default_value':    If references to any entities are provided by default, it
                      should be as Entity IDs. For single values, just pass the
                      ID of the referenced entity. For multiple values, an array
                      of Entity IDs is expected.
-
-
-ROADMAP
--------
-
- * Filtering by the value of any field of the entity.

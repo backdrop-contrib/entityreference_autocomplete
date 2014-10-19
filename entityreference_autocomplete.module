@@ -185,11 +185,24 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
     }
     $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
     $query->propertyCondition($label_column, $entity_label);
+
     // Add the property conditions declared.
     if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
       foreach($query_settings['property_conditions'] as $property_condition) {
         $operator = isset($property_condition[2]) ? $property_condition[2] : NULL;
         $query->propertyCondition($property_condition[0], $property_condition[1], $operator);
+      }
+    }
+
+    // Add the field conditions declared.
+    if (!empty($query_settings['field_conditions']) && is_array($query_settings['field_conditions'])) {
+      foreach($query_settings['field_conditions'] as $field_condition) {
+        $column = isset($field_condition[1]) ? $field_condition[1] : NULL;
+        $value = isset($field_condition[2]) ? $field_condition[2] : NULL;
+        $operator = isset($field_condition[3]) ? $field_condition[3] : NULL;
+        $delta_group = isset($field_condition[4]) ? $field_condition[4] : NULL;
+        $language_group = isset($field_condition[5]) ? $field_condition[5] : NULL;
+        $query->fieldCondition($field_condition[0], $column, $value, $operator, $delta_group, $language_group);
       }
     }
 
