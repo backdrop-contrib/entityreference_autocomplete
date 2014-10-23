@@ -179,6 +179,11 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
     // Query the database to see which entities match.
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
+
+    // Check if user entered the exact entity id, and add a filter for it.
+    if (preg_match("/.+\((\d+)\)/", $input_label, $matches)) {
+      $query->entityCondition('entity_id', $matches[1]);
+    }
     // Add bundles to the query, if specified.
     if (isset($element['#era_bundles']) && !empty($entity_info['entity keys']['bundle'])) {
       $query->entityCondition('bundle', $element['#era_bundles']);
