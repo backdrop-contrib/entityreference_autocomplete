@@ -65,7 +65,15 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
       $query->range(0, $query_settings['limit']);
     }
-    $result = $query->execute();
+
+    // Execute query and log any unexpected errors.
+    try {
+      $result = $query->execute();
+    }
+    catch (Exception $e) {
+      $args = array('@error' => $e->getMessage());
+      watchdog(WATCHDOG_ERROR, t('Entityreference Autocomplete error: @error', $args));
+    }
 
     if (!empty($result[$entity_type])) {
       $entities = entity_load($entity_type, array_keys($result[$entity_type]));
