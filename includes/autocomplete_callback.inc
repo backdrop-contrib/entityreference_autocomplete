@@ -40,7 +40,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
 
     // Fetch the column to use as label.
     $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
-    $query->propertyCondition($label_column, '%' . $last_label . '%', 'LIKE');
+    $query->propertyCondition($label_column, $last_label, 'CONTAINS');
 
     // Set property conditions, if any.
     if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
