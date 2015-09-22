@@ -79,6 +79,10 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       $query->range(0, $query_settings['limit']);
     }
 
+    // Add a tag to the query so modules can alter it.
+    $query->addTag('era_query');
+    $query->addMetaData('era_search_string', $last_label);
+
     // Execute query and log any unexpected errors.
     try {
       $result = $query->execute();
