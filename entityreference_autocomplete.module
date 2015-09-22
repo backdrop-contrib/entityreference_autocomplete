@@ -150,7 +150,7 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
     // Merge effective settings with the default settings array.
     $element_info = entityreference_autocomplete_element_info();
     $query_settings = array_merge($element_info['entityreference']['#era_query_settings'], $element['#era_query_settings']);
-    $autocomplete_path .= '/' . urlencode(http_build_query($query_settings));
+    $autocomplete_path .= '/' . http_build_query($query_settings);
     $element['#autocomplete_path'] = $autocomplete_path;
   }
   return $element;
