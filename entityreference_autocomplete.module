@@ -60,6 +60,13 @@ function entityreference_autocomplete_element_info() {
       'limit' => '50',
     ),
   );
+  // Since Drupal core 7.39, additional processing is necessary for
+  // autocomplete text fields. See https://www.drupal.org/node/2561431
+  // In prior versions of Drupal core, form_process_autocomplete() is not
+  // available.
+  if (function_exists('form_process_autocomplete')) {
+    $types['entityreference']['#process'][] = 'form_process_autocomplete';
+  }
   return $types;
 }
 
