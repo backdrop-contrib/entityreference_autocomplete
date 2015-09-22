@@ -11,6 +11,9 @@
  */
 function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $encoded_query_settings, $string = '') {
   $matches = array();
+  // $context will hold the metadata of entities found, so that modules
+  // can alter the results in any way they want.
+  $context = array();
 
   // Decode the query settings passed and then parse the result string to get
   // the actual settings array.
@@ -77,9 +80,6 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
 
     if (!empty($result[$entity_type])) {
       $entities = entity_load($entity_type, array_keys($result[$entity_type]));
-      // $context will hold the metadata of entities found, so that modules
-      // can alter the results in any way they want.
-      $context = array();
 
       // Iterate through all entities retrieved and process the data to return
       // it as expected by Drupal javascript.
