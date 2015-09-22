@@ -23,6 +23,9 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
   // the last label.
   $labels_typed = entityreference_autocomplete_explode_tags($string);
   $last_label = drupal_strtolower(array_pop($labels_typed));
+
+  // Prefix string to add to every result.
+  $prefix = '';
   if (!empty($last_label)) {
     $prefix = count($labels_typed) ? implode(', ', $labels_typed) . ', ' : '';
   }
