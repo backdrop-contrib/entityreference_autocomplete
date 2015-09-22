@@ -58,7 +58,7 @@ After installing the module:
               // 'entity property', 'filter value', 'operator'.
               array('uid', 30, '>'),
             ),
-            'field_contitions' => array(
+            'field_conditions' => array(
               // 'field name', 'column', 'value', 'op', 'delta', 'language'.
               array('field_test_field', 'value', 'test'),
             ),
