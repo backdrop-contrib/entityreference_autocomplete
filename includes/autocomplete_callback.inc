@@ -97,6 +97,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
           // Store metadata about the entity returned in a variable.
           list(, , $bundle) = entity_extract_ids($entity_type, $entity);
           $context[$prefix . $key] = array(
+            'entity' => $entity,
             'entity_id' => $entity_id,
             'entity_type' => $entity_type,
             'entity_bundle' => $bundle,
