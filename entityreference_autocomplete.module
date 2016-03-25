@@ -164,6 +164,7 @@ function entityreference_autocomplete_process_entityreference($element, &$form_s
 function entityreference_autocomplete_validate_entityreference(&$element, &$form_state) {
   $labels_string = $element['#value'];
   $input_labels = drupal_explode_tags($labels_string);
+  $uuid_exists = function_exists('entity_get_uuid_by_id');
   $entity_type = $element['#era_entity_type'];
   $entity_info = entity_get_info($entity_type);
   $query_settings = $element['#era_query_settings'];
@@ -261,6 +262,12 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
             'entity_type' => $entity_type,
             'entity_bundle' => $bundle,
           );
+
+          // If uuid module is available.
+          if ($uuid_exists) {
+            $uuid = entity_get_uuid_by_id($entity_type, array($entity_id));
+            $values[$entity_id]['entity_uuid'] = !empty($uuid) ? reset($uuid) : NULL;
+          }
         }
       }
     }
