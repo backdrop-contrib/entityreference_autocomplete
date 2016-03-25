@@ -165,6 +165,7 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
   $labels_string = $element['#value'];
   $input_labels = drupal_explode_tags($labels_string);
   $entity_type = $element['#era_entity_type'];
+  $entity_info = entity_get_info($entity_type);
   $query_settings = $element['#era_query_settings'];
   $values = array();
 
