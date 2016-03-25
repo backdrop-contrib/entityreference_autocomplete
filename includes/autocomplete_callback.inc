@@ -130,27 +130,3 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
   // Finally, output matches in json, as they're are expected by Drupal's ajax.
   drupal_json_output($matches);
 }
-
-/**
- * Explodes a string of tags into an array.
- *
- * This is almost a clone of drupal's drupal_explode_tags() function. The reason
- * to use this custom function is because drupal_explode_tags() assumes that the
- * tags entered will be saved straight into the database after being returned,
- * so it removes any escape formatting of the tags. That will make the
- * autocomplete callback to remove any quotes added to tags when users add a
- * different tag, making the escaping of previous ones to disappear, which
- * ultimately will result in an invalid value error in the validation callback.
- *
- * This function does the same as drupal_explode_tags() in terms of exploding
- * the tags, but it doesn't remove any escape formatting from the tags to be
- * returned.
- *
- * @see drupal_explode_tags()
- */
-function entityreference_autocomplete_explode_tags($tags) {
-  $regexp = '%(?:^|,\ *)("(?>[^"]*)(?>""[^"]* )*"|(?: [^",]*))%x';
-  preg_match_all($regexp, $tags, $matches);
-  $typed_tags = array_unique($matches[1]);
-  return $typed_tags;
-}
