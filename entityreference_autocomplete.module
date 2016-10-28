@@ -194,7 +194,7 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
       $query->entityCondition('entity_id', $matches[1]);
     }
     // Add bundles to the query, if specified.
-    if (isset($element['#era_bundles']) && !empty($entity_info['entity keys']['bundle'])) {
+    if (!empty($element['#era_bundles']) && !empty($entity_info['entity keys']['bundle'])) {
       $query->entityCondition('bundle', $element['#era_bundles']);
     }
     $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
