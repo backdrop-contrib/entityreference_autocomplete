@@ -94,28 +94,17 @@ function entityreference_autocomplete_value_callback($element, $edit = FALSE, &$
   if ($edit === FALSE) {
     // If there are any default values, transform them into proper labels.
     if (!empty($element['#default_value'])) {
-      // Only one entity referenced.
-      if (is_numeric($element['#default_value'])) {
-        $references_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
-      }
-      // Multiple entities referenced.
-      else if (is_array($element['#default_value'])) {
-        $referenced_labels = array();
-        foreach ($element['#default_value'] as $entity_id) {
-          $referenced_labels[] = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $entity_id);
-          $references_label = implode(', ', array_filter($referenced_labels));
-        }
+      $labels = array();
+
+      foreach (is_array(reset($element['#default_value'])) ? $element['#default_value'] : array($element['#default_value']) as $value) {
+        $labels[] = entityreference_autocomplete_label_for_reference($value['entity_type'], $value['entity_id']);
       }
 
-      // Labels assembled.
-      if (!empty($references_label)) {
-        return $references_label;
-      }
+      $labels = array_filter($labels);
+
       // This should never be reached, but if it's, return whatever default
       // value was specified.
-      else {
-        return $element['#default_value'];
-      }
+      return empty($labels) ? $element['#default_value'] : implode(', ', $labels);
     }
   }
   // The user submitted a value for the element. Return it as is.
