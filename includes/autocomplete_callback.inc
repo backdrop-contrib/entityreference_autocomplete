@@ -27,7 +27,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
 
   // Decode the query settings passed and then parse the result string to get
   // the actual settings array.
-  parse_str(urldecode($encoded_query_settings), $query_settings);
+  parse_str(decode_entities(urldecode($encoded_query_settings)), $query_settings);
 
   // The user enters a comma-separated list of entity labels. Autocomplete only
   // the last label.
