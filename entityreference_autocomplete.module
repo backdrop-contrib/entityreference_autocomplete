@@ -161,13 +161,13 @@ function entityreference_autocomplete_validate_entityreference(&$element, &$form
 
   // If there are more values than the allowed, set an error and return. No need
   // to validate each of the values.
-  if (($element['#era_cardinality'] !== ERA_CARDINALITY_UNLIMITED) && count($input_labels) > $element['#era_cardinality']) {
-    form_error($element, t('The "!field" field can\'t contain more than !cardinality !format_plural_values.',
-      array(
-        '!field' => t($element['#title']),
-        '!cardinality' => $element['#era_cardinality'],
-        '!format_plural_values' => format_plural($element['#era_cardinality'], 'value', 'values')
-      )));
+  if ($element['#era_cardinality'] !== ERA_CARDINALITY_UNLIMITED && count($input_labels) > $element['#era_cardinality']) {
+    form_error($element, t('The "@field" field cannot contain more than @cardinality @format_plural_values.', array(
+      '@field' => isset($element['#title']) ? $element['#title'] : $element['#name'],
+      '@cardinality' => $element['#era_cardinality'],
+      '@format_plural_values' => format_plural($element['#era_cardinality'], 'value', 'values'),
+    )));
+
     return;
   }
 
