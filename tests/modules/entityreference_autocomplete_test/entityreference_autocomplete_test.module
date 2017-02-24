@@ -1,0 +1,27 @@
+<?php
+
+/**
+ * @file
+ * Entity Reference Autocomplete (Test).
+ */
+
+/**
+ * {@inheritdoc}
+ *
+ * @internal
+ */
+function entityreference_autocomplete_test_form(array $form, array &$form_state) {
+  if (!array_key_exists('entity_type', $_SESSION) || !array_key_exists('default_value', $_SESSION)) {
+    throw new \RuntimeException('Test cannot be executed without value and entity ID.');
+  }
+
+  $form['entityreference'] = array(
+    '#type' => 'entityreference',
+    '#default_value' => $_SESSION['default_value'],
+    '#era_bundles' => isset($_SESSION['bundles']) ? $_SESSION['bundles'] : [],
+    '#era_entity_type' => $_SESSION['entity_type'],
+    '#era_cardinality' => isset($_SESSION['cardinality']) ? $_SESSION['cardinality'] : 1,
+  );
+
+  return $form;
+}

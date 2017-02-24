@@ -64,7 +64,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     }
 
     // Fetch the column to use as label.
-    $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
+    $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type, $entity_info);
     $query->propertyCondition($label_column, $last_label, 'CONTAINS');
 
     // Set property conditions, if any.
@@ -109,10 +109,10 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       // Iterate through all entities retrieved and process the data to return
       // it as expected by Drupal javascript.
       foreach ($entities as $entity_id => $entity) {
-        if (entity_access('view', $entity_type, $entity)) {
+        if (entityreference_autocomplete_entity_access('view', $entity_type, $entity, $entity_info)) {
           // Get the labels for the key and for the option.
-          $option = entityreference_autocomplete_label_for_reference($entity_type, $entity_id, FALSE);
-          $key = entityreference_autocomplete_label_for_reference($entity_type, $entity_id);
+          $option = entityreference_autocomplete_label_for_reference($entity_type, $entity, FALSE);
+          $key = entityreference_autocomplete_label_for_reference($entity_type, $entity);
 
           // $prefix . $key is the value that will be set in the textfield in
           // the browser, whereas $option is the html that is shown to the user
