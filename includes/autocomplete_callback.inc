@@ -10,23 +10,18 @@
  *
  * @param string $entity_type
  *   The type of entity.
- * @param string $bundles
+ * @param string[] $bundles
  *   List of bundles.
- * @param string $encoded_query_settings
- *   Query string.
+ * @param array $query_settings
+ *   Query settings.
  * @param string $string
  *   Search query.
  */
-function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $encoded_query_settings, $string = '') {
+function entityreference_autocomplete_autocomplete_callback($entity_type, array $bundles, array $query_settings, $string) {
   // If search string contains a slash "/", menu system will think it's a new
   // argument. In such case, reassemble the whole search string.
-  $args = func_get_args();
-
-  if (count($args) > 4) {
-    array_shift($args);
-    array_shift($args);
-    array_shift($args);
-    $string = implode('/', $args);
+  if (func_num_args() > 4) {
+    $string = implode('/', array_slice(func_get_args(), 3));
   }
 
   $matches = array();
@@ -34,17 +29,13 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
   // can alter the results in any way they want.
   $context = array();
 
-  // Decode the query settings passed and then parse the result string to get
-  // the actual settings array.
-  parse_str(decode_entities(urldecode($encoded_query_settings)), $query_settings);
-
   // The user enters a comma-separated list of entity labels. Autocomplete only
   // the last label.
   $labels_typed = entityreference_autocomplete_explode_tags($string);
   $last_label = drupal_strtolower(array_pop($labels_typed));
-
   // Prefix string to add to every result.
   $prefix = '';
+
   if (!empty($last_label)) {
     $prefix = count($labels_typed) ? implode(', ', $labels_typed) . ', ' : '';
   }
@@ -56,10 +47,9 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
 
-    // If $bundless is not null, add the 'bundle' condition. Also, save some
-    // pain to anyone trying to specify a bundle when the entity has no actual
-    // key for bundles.
-    if ($bundles && !empty($entity_info['entity keys']['bundle'])) {
+    // Save some pain to anyone trying to specify a bundle when the entity
+    // has no actual key for bundles.
+    if (!empty($bundles) && !empty($entity_info['entity keys']['bundle'])) {
       $query->entityCondition('bundle', $bundles);
     }
 

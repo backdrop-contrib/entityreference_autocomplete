@@ -6,9 +6,15 @@
  */
 
 /**
- * Value for "entityreference" to indicate a field accepts unlimited values.
+ * Will be removed soon.
+ *
+ * @deprecated
  */
 define('ERA_CARDINALITY_UNLIMITED', -1);
+/**
+ * Value for "entityreference" to indicate a field accepts unlimited values.
+ */
+define('ENTITYREFERENCE_AUTOCOMPLETE_CARDINALITY_UNLIMITED', -1);
 
 /**
  * Implements hook_menu().
@@ -16,13 +22,12 @@ define('ERA_CARDINALITY_UNLIMITED', -1);
 function entityreference_autocomplete_menu() {
   $items = array();
 
-  $items['entityreference_autocomplete/autocomplete/%/%entityreference_autocomplete_bundles/%'] = array(
-    'title' => 'Entity Reference Element autocomplete callback',
-    'page callback' => 'entityreference_autocomplete_autocomplete_callback',
-    'page arguments' => array(2, 3, 4),
-    'access arguments' => array('access content'),
+  $items['entityreference_autocomplete/autocomplete/%/%entityreference_autocomplete_bundles/%entityreference_autocomplete_query_settings'] = array(
     'file' => 'includes/autocomplete_callback.inc',
     'type' => MENU_CALLBACK,
+    'page callback' => 'entityreference_autocomplete_autocomplete_callback',
+    'page arguments' => array(2, 3, 4),
+    'access callback' => TRUE,
   );
 
   return $items;
@@ -31,14 +36,37 @@ function entityreference_autocomplete_menu() {
 /**
  * Returns a list of bundles from the "entityreference_autocomplete" path.
  *
- * @param string $bundles_string
- *   List of bundles.
+ * @param string $bundles
+ *   List of bundles, separated by "+".
  *
- * @return array|null
- *   The different bundles extracted from the autocomplete path.
+ * @return string[]
+ *   List of bundles extracted from the autocomplete path.
+ *
+ * @see entityreference_autocomplete_menu()
+ * @see entityreference_autocomplete_process_entityreference()
  */
-function entityreference_autocomplete_bundles_load($bundles_string) {
-  return '*' === $bundles_string ? NULL : explode('+', $bundles_string);
+function entityreference_autocomplete_bundles_load($bundles) {
+  return '*' === $bundles ? array() : explode('+', $bundles);
+}
+
+/**
+ * Returns query settings from the "entityreference_autocomplete" path.
+ *
+ * @param string $settings
+ *   Groups of query settings, like "limit=1&field_conditions=...".
+ *
+ * @return array
+ *   Query settings extracted from the autocomplete path.
+ *
+ * @see entityreference_autocomplete_menu()
+ * @see entityreference_autocomplete_process_entityreference()
+ */
+function entityreference_autocomplete_query_settings_load($settings) {
+  $query_settings = array();
+
+  parse_str(decode_entities(urldecode($settings)), $query_settings);
+
+  return $query_settings;
 }
 
 /**
@@ -227,7 +255,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
 
   // If there are more values than the allowed, set an error and return. No need
   // to validate each of the values.
-  if ($element['#era_cardinality'] !== ERA_CARDINALITY_UNLIMITED && count($input_labels) > $element['#era_cardinality']) {
+  if ($element['#era_cardinality'] !== ENTITYREFERENCE_AUTOCOMPLETE_CARDINALITY_UNLIMITED && count($input_labels) > $element['#era_cardinality']) {
     form_error($element, t('The "@field" field cannot contain more than @cardinality @format_plural_values.', array(
       '@field' => isset($element['#title']) ? $element['#title'] : $element['#name'],
       '@cardinality' => $element['#era_cardinality'],
