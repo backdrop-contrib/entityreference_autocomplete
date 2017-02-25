@@ -12,7 +12,7 @@ class ValueCallbackTest extends BaseTest {
    */
   public static function getInfo() {
     return array(
-      'name' => 'Tests of the "#value_callback"',
+      'name' => 'Tests of the "#value_callback" callback',
       'group' => 'Entity Reference Autocomplete',
       'description' => 'Ensure that "#value_callback" from element definition works properly.',
     );

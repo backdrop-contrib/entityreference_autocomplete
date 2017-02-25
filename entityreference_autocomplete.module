@@ -63,7 +63,7 @@ function entityreference_autocomplete_element_info() {
     '#era_cardinality' => 1,
     // Specify some sensible defaults for the number of results returned.
     '#era_query_settings' => array(
-      'limit' => '50',
+      'limit' => 50,
     ),
   );
 
@@ -198,22 +198,18 @@ function entityreference_autocomplete_value_callback(array $element, $edit = FAL
 function entityreference_autocomplete_process_entityreference(array $element) {
   if (!empty($element['#era_entity_type'])) {
     // Set the autocomplete path based on the entity type to look for.
-    $autocomplete_path = 'entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
+    $element['#autocomplete_path'] = 'entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
 
     // If there's bundle filtering, add it. Otherwise, set a wildcard. Also,
     // force the property to be an array.
     if (!empty($element['#era_bundles']) && is_array($element['#era_bundles'])) {
-      $autocomplete_path .= '/' . implode('+', $element['#era_bundles']);
+      $element['#autocomplete_path'] .= '/' . implode('+', $element['#era_bundles']);
     }
     else {
-      $autocomplete_path .= '/*';
+      $element['#autocomplete_path'] .= '/*';
     }
 
-    // Merge effective settings with the default settings array.
-    $element_info = entityreference_autocomplete_element_info();
-    $query_settings = array_merge($element_info['entityreference']['#era_query_settings'], $element['#era_query_settings']);
-    $autocomplete_path .= '/' . http_build_query($query_settings);
-    $element['#autocomplete_path'] = $autocomplete_path;
+    $element['#autocomplete_path'] .= '/' . http_build_query($element['#era_query_settings']);
   }
 
   return $element;

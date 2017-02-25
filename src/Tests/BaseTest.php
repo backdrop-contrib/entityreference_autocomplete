@@ -15,20 +15,6 @@ abstract class BaseTest extends \DrupalWebTestCase {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  protected function tearDown() {
-    parent::tearDown();
-
-    unset(
-      $_SESSION['entity_type'],
-      $_SESSION['default_value'],
-      $_SESSION['cardinality'],
-      $_SESSION['bundles']
-    );
-  }
-
-  /**
    * Build the form with "entityreference" field.
    *
    * @param string $entity_type
@@ -39,17 +25,19 @@ abstract class BaseTest extends \DrupalWebTestCase {
    *   Number of allowed references per field.
    * @param string[] $bundles
    *   List of entity bundles for filtering.
+   * @param array $query_settings
+   *   Query settings.
+   *
+   * @return array
+   *   Complete "entityreference" element that was built.
    *
    * @see entityreference_autocomplete_test_form()
    */
-  protected function buildForm($entity_type, $default_value, $cardinality = 1, array $bundles = array()) {
-    $_SESSION['entity_type'] = $entity_type;
-    $_SESSION['default_value'] = $default_value;
-    $_SESSION['cardinality'] = $cardinality;
-    $_SESSION['bundles'] = $bundles;
-
-    $form = drupal_get_form('entityreference_autocomplete_test_form');
+  protected function buildForm($entity_type, $default_value, $cardinality = 1, array $bundles = array(), array $query_settings = array()) {
+    $form = drupal_get_form('entityreference_autocomplete_test_form', $entity_type, $default_value, $cardinality, $bundles, $query_settings);
     $this->drupalSetContent(drupal_render($form));
+
+    return $form['entityreference'];
   }
 
 }

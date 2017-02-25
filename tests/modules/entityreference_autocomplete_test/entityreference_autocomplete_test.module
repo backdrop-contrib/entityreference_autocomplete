@@ -9,18 +9,22 @@
  * {@inheritdoc}
  *
  * @internal
+ * @see \Drupal\entityreference_autocomplete\Tests\BaseTest::buildForm()
  */
-function entityreference_autocomplete_test_form(array $form, array &$form_state) {
-  if (!array_key_exists('entity_type', $_SESSION) || !array_key_exists('default_value', $_SESSION)) {
-    throw new \RuntimeException('Test cannot be executed without value and entity ID.');
+function entityreference_autocomplete_test_form(array $form, array &$form_state, $entity_type, $default_value, $cardinality = 1, array $bundles = array(), array $query_settings = array()) {
+  if (empty($query_settings)) {
+    $query_settings = array(
+      'limit' => 50,
+    );
   }
 
   $form['entityreference'] = array(
     '#type' => 'entityreference',
-    '#default_value' => $_SESSION['default_value'],
-    '#era_bundles' => isset($_SESSION['bundles']) ? $_SESSION['bundles'] : array(),
-    '#era_entity_type' => $_SESSION['entity_type'],
-    '#era_cardinality' => isset($_SESSION['cardinality']) ? $_SESSION['cardinality'] : 1,
+    '#default_value' => $default_value,
+    '#era_bundles' => $bundles,
+    '#era_cardinality' => $cardinality,
+    '#era_entity_type' => $entity_type,
+    '#era_query_settings' => $query_settings,
   );
 
   return $form;
