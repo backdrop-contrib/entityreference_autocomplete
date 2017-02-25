@@ -1,31 +1,11 @@
 <?php
 
-namespace Drupal\Tests\entity_reference_autocomplete;
+namespace Drupal\entityreference_autocomplete\Tests;
 
 /**
  * Base fixture for "entityreference_autocomplete" tests.
  */
 abstract class BaseTest extends \DrupalWebTestCase {
-
-  /**
-   * Description of the test.
-   */
-  const DESCRIPTION = '';
-
-  /**
-   * {@inheritdoc}
-   */
-  final public static function getInfo() {
-    $info = array();
-    $info['name'] = static::class;
-    $info['group'] = 'Entity';
-
-    if (!empty(static::DESCRIPTION)) {
-      $info['description'] = static::DESCRIPTION;
-    }
-
-    return $info;
-  }
 
   /**
    * {@inheritdoc}
@@ -62,7 +42,7 @@ abstract class BaseTest extends \DrupalWebTestCase {
    *
    * @see entityreference_autocomplete_test_form()
    */
-  protected function buildForm($entity_type, $default_value, $cardinality = 1, array $bundles = []) {
+  protected function buildForm($entity_type, $default_value, $cardinality = 1, array $bundles = array()) {
     $_SESSION['entity_type'] = $entity_type;
     $_SESSION['default_value'] = $default_value;
     $_SESSION['cardinality'] = $cardinality;

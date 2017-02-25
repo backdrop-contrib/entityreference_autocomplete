@@ -154,7 +154,7 @@ function entityreference_autocomplete_value_callback(array $element, $edit = FAL
     if ($is_value_acceptable($default_values)) {
       $default_values = array($default_values);
     }
-    // Not an array - good bay!
+    // Not an array - goodbye!
     elseif (!is_array($default_values)) {
       return $default_values;
     }
@@ -177,9 +177,9 @@ function entityreference_autocomplete_value_callback(array $element, $edit = FAL
 
     $entity_labels = array_filter($entity_labels);
 
-    // This should never be reached, but if it's, return whatever default
-    // value was specified.
-    return empty($entity_labels) ? $default_values : implode(', ', $entity_labels);
+    // This should never be reached, but if it's, return FALSE and assume
+    // default value as totally incorrect.
+    return empty($entity_labels) ? FALSE : implode(', ', $entity_labels);
   }
 
   // The user submitted a value for the element. Return it as is.

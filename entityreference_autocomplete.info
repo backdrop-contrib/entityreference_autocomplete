@@ -1,9 +1,4 @@
 name = Entity Reference Autocomplete
-description = A Form API element type to reference arbitrary entities through an autocomplete textfield
+description = A Form API element type to reference arbitrary entities through an autocomplete textfield.
 core = 7.x
 php = 5.3
-
-autoload[tests/src][] = Drupal\Tests\entity_reference_autocomplete
-
-; Dependencies for running autotests.
-test_dependencies[] = autoload (>=7.x-1.3)

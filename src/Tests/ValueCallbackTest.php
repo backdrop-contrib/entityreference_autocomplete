@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Tests\entity_reference_autocomplete;
+namespace Drupal\entityreference_autocomplete\Tests;
 
 /**
  * {@inheritdoc}
@@ -10,7 +10,13 @@ class ValueCallbackTest extends BaseTest {
   /**
    * {@inheritdoc}
    */
-  const DESCRIPTION = 'Ensure that "#value_callback" from element definition works properly.';
+  public static function getInfo() {
+    return array(
+      'name' => 'Tests of the "#value_callback"',
+      'group' => 'Entity Reference Autocomplete',
+      'description' => 'Ensure that "#value_callback" from element definition works properly.',
+    );
+  }
 
   /**
    * Test acceptable values for element definition.
@@ -86,12 +92,10 @@ class ValueCallbackTest extends BaseTest {
     );
 
     $wrong_structure2 = array(
-      // Error "Array to string conversion".
       'entity_id' => array($entity_id),
     );
 
     $wrong_structure3 = array(
-      // Error "Object of class stdClass could not be converted to string".
       'entity_id' => array($entity),
     );
 

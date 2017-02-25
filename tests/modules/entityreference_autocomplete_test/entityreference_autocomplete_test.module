@@ -18,7 +18,7 @@ function entityreference_autocomplete_test_form(array $form, array &$form_state)
   $form['entityreference'] = array(
     '#type' => 'entityreference',
     '#default_value' => $_SESSION['default_value'],
-    '#era_bundles' => isset($_SESSION['bundles']) ? $_SESSION['bundles'] : [],
+    '#era_bundles' => isset($_SESSION['bundles']) ? $_SESSION['bundles'] : array(),
     '#era_entity_type' => $_SESSION['entity_type'],
     '#era_cardinality' => isset($_SESSION['cardinality']) ? $_SESSION['cardinality'] : 1,
   );
