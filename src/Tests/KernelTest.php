@@ -14,6 +14,19 @@ abstract class KernelTest extends \DrupalWebTestCase {
     parent::setUp(array('entityreference_autocomplete_test'));
   }
 
+  /**
+   * Create test entities.
+   *
+   * @param int $users_count
+   *   Number of users to create.
+   * @param int $pages_count
+   *   Number of nodes of type "page" to create.
+   * @param int $articles_count
+   *   Number of nodes of type "article" to create.
+   *
+   * @return array[]
+   *   An array of arrays with meta information of entities.
+   */
   protected function createEntities($users_count = 1, $pages_count = 1, $articles_count = 1) {
     $data = array();
     $metadata = array();
