@@ -3,15 +3,24 @@
 namespace Drupal\entityreference_autocomplete\Tests;
 
 /**
- * Base fixture for "entityreference_autocomplete" tests.
+ * Base fixture for "entityreference_autocomplete" unit tests.
  */
-abstract class BaseTest extends \DrupalWebTestCase {
+abstract class UnitTest extends KernelTest {
+
+  /**
+   * Property, to set element value. One of "#value" or "#default_value".
+   *
+   * @var string
+   */
+  protected $valueProperty = '';
 
   /**
    * {@inheritdoc}
    */
   protected function setUp() {
-    parent::setUp(array('entityreference_autocomplete_test'));
+    parent::setUp();
+
+    $this->valueProperty = '#default_value';
   }
 
   /**
@@ -31,10 +40,10 @@ abstract class BaseTest extends \DrupalWebTestCase {
    * @return array
    *   Complete "entityreference" element that was built.
    *
-   * @see entityreference_autocomplete_test_form()
+   * @see entityreference_autocomplete_test_programmatic_form()
    */
   protected function buildForm($entity_type, $default_value, $cardinality = 1, array $bundles = array(), array $query_settings = array()) {
-    $form = drupal_get_form('entityreference_autocomplete_test_form', $entity_type, $default_value, $cardinality, $bundles, $query_settings);
+    $form = drupal_get_form('entityreference_autocomplete_test_form', $entity_type, $default_value, $cardinality, $bundles, $query_settings, $this->valueProperty);
     $this->drupalSetContent(drupal_render($form));
 
     return $form['entityreference'];

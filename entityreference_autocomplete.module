@@ -79,6 +79,9 @@ function entityreference_autocomplete_element_info() {
     '#input' => TRUE,
     '#size' => 60,
     '#autocomplete_path' => FALSE,
+    // This callback called before any processing and element's argument can
+    // be modified by reference.
+    // @see _form_builder_handle_input_element()
     '#value_callback' => 'entityreference_autocomplete_value_callback',
     '#process' => array('ajax_process_form', 'entityreference_autocomplete_process_entityreference'),
     '#element_validate' => array('entityreference_autocomplete_validate_entityreference'),
@@ -162,9 +165,15 @@ function entityreference_autocomplete_element_info() {
  * );
  * @endcode
  */
-function entityreference_autocomplete_value_callback(array $element, $edit = FALSE) {
-  // Just process the value when $edit comes as FALSE (no form submission).
-  if (FALSE === $edit && !empty($element['#default_value'])) {
+function entityreference_autocomplete_value_callback(array &$element, $edit = FALSE) {
+  if (
+    // Form have not been submitted.
+    FALSE === $edit &&
+    // Default value specified.
+    !empty($element['#default_value']) &&
+    // Entity type specified and exists.
+    entityreference_autocomplete_is_element_valid($element)
+  ) {
     $default_values = $element['#default_value'];
     $entity_labels = array();
 
@@ -196,10 +205,12 @@ function entityreference_autocomplete_value_callback(array $element, $edit = FAL
       }
 
       if ($is_value_acceptable($default_value)) {
-        $entity_labels[] = entityreference_autocomplete_label_for_reference(
+        list($label) = entityreference_autocomplete_label_for_reference(
           $element['#era_entity_type'],
           $default_value
         );
+
+        $entity_labels[] = $label;
       }
     }
 
@@ -224,7 +235,16 @@ function entityreference_autocomplete_value_callback(array $element, $edit = FAL
  *   The processed element.
  */
 function entityreference_autocomplete_process_entityreference(array $element) {
-  if (!empty($element['#era_entity_type'])) {
+  if (entityreference_autocomplete_is_element_valid($element)) {
+    // Allow only numeric values.
+    if (!is_numeric($element['#era_cardinality'])) {
+      $element['#era_cardinality'] = 1;
+    }
+    // Don't allow to use zero since it has no sense. Mark as unlimited.
+    elseif ($element['#era_cardinality'] < 1) {
+      $element['#era_cardinality'] = ENTITYREFERENCE_AUTOCOMPLETE_CARDINALITY_UNLIMITED;
+    }
+
     // Set the autocomplete path based on the entity type to look for.
     $element['#autocomplete_path'] = 'entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
 
@@ -269,6 +289,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
   $entity_type = $element['#era_entity_type'];
   $entity_info = entity_get_info($entity_type);
   $query_settings = $element['#era_query_settings'];
+  $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type, $entity_info);
   $values = array();
 
   foreach ($input_labels as $input_label) {
@@ -277,14 +298,16 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
     // Query the database to see which entities match.
     $query = new EntityFieldQuery();
     $query->entityCondition('entity_type', $entity_type);
+    // Add a tag to the query so modules can alter it.
+    $query->addMetaData('era_search_string', $entity_label);
+    $query->addTag('era_query');
 
     // Check if user entered the exact entity id, and add a filter for it.
     if (preg_match('/.+\((\d+)\)/', $input_label, $matches)) {
       $query->entityCondition('entity_id', $matches[1]);
     }
     else {
-      $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type, $entity_info);
-      $query->propertyCondition($label_column, $entity_label);
+      $query->propertyCondition($label_column, $input_label, 'CONTAINS');
     }
 
     // Add bundles to the query, if specified.
@@ -295,77 +318,76 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
     // Add the property conditions declared.
     if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
       foreach ($query_settings['property_conditions'] as $property_condition) {
-        $operator = isset($property_condition[2]) ? $property_condition[2] : NULL;
-        $query->propertyCondition($property_condition[0], $property_condition[1], $operator);
+        if (is_array($property_condition) && count($property_condition) > 1) {
+          call_user_func_array(array($query, 'propertyCondition'), $property_condition);
+        }
       }
     }
 
     // Add the field conditions declared.
     if (!empty($query_settings['field_conditions']) && is_array($query_settings['field_conditions'])) {
       foreach ($query_settings['field_conditions'] as $field_condition) {
-        $column = isset($field_condition[1]) ? $field_condition[1] : NULL;
-        $value = isset($field_condition[2]) ? $field_condition[2] : NULL;
-        $operator = isset($field_condition[3]) ? $field_condition[3] : NULL;
-        $delta_group = isset($field_condition[4]) ? $field_condition[4] : NULL;
-        $language_group = isset($field_condition[5]) ? $field_condition[5] : NULL;
-        $query->fieldCondition($field_condition[0], $column, $value, $operator, $delta_group, $language_group);
+        if (is_array($field_condition) && count($field_condition) > 0) {
+          call_user_func_array(array($query, 'fieldCondition'), $field_condition);
+        }
       }
     }
-
-    // Add a tag to the query so modules can alter it.
-    $query->addTag('era_query');
-    $query->addMetaData('era_search_string', $entity_label);
 
     $matching_entities = $query->execute();
 
     // No matches found.
     if (empty($matching_entities[$entity_type])) {
       // Error if there are no entities available for a required field.
-      form_error($element, t('There are no entities matching "%value"', array('%value' => $entity_label)));
+      form_error($element, t('There are no entities matching "%value".', array('%value' => $entity_label)));
+
+      return;
     }
-    // One or more matches found.
-    else {
-      $matching_entities = entity_load($entity_type, array_keys($matching_entities[$entity_type]));
 
-      if (count($matching_entities) > 1) {
-        // Display helpful error if there are several matching entities.
-        $multiples = array();
+    $matching_entities = entity_load($entity_type, array_keys($matching_entities[$entity_type]));
 
-        foreach ($matching_entities as $id => $entity) {
-          $multiples[] = $entity->{$label_column} . " ($id)";
-        }
+    if (count($matching_entities) > 1) {
+      // Display helpful error if there are several matching entities.
+      $multiples = array();
 
-        form_error($element, t('Multiple entities match this reference; "%multiple". Specify the one you want by appending the ID in parentheses, like "@value (@id)"', array(
-          '%multiple' => implode('", "', $multiples),
-        )));
+      foreach ($matching_entities as $id => $entity) {
+        list($label) = entityreference_autocomplete_label_for_reference($entity_type, $entity);
+        $multiples[] = $label;
       }
-      else {
-        $entity = current($matching_entities);
-        list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
 
-        // User doesn't have read (view) access to it, set same error as the one
-        // for no matches, since we don't want to reveal that the entity exists.
-        if (!entityreference_autocomplete_entity_access('view', $entity_type, $entity, $entity_info)) {
-          form_error($element, t('There are no entities matching "%value"', array(
-            '%value' => $entity_label,
-          )));
-        }
-        else {
-          // Return some basic context of the entity referenced by the user.
-          $values[$entity_id] = array(
-            'entity_id' => $entity_id,
-            'entity_label' => entity_label($entity_type, $entity),
-            'entity_type' => $entity_type,
-            'entity_bundle' => $bundle,
-          );
+      form_error($element, t('Multiple entities match this reference: "%multiple". Specify the one you want by appending the ID in parentheses, like "@value (@id)"', array(
+        '%multiple' => implode('", "', $multiples),
+      )));
 
-          // If uuid module is available.
-          if ($uuid_exists) {
-            $uuid = entity_get_uuid_by_id($entity_type, array($entity_id));
-            $values[$entity_id]['entity_uuid'] = empty($uuid) ? NULL : reset($uuid);
-          }
-        }
-      }
+      return;
+    }
+
+    $entity = reset($matching_entities);
+
+    // User doesn't have read access to it, set same error as the one for
+    // no matches, since we don't want to reveal that the entity exists.
+    if (!entityreference_autocomplete_entity_access('view', $entity_type, $entity, $entity_info)) {
+      form_error($element, t('There are no entities matching "%value".', array(
+        '%value' => $entity_label,
+      )));
+
+      return;
+    }
+
+    list($entity_id, $entity_vid, $bundle) = entity_extract_ids($entity_type, $entity);
+
+    // Return some basic context of the entity referenced by the user.
+    $values[$entity_id] = array(
+      'entity_id' => $entity_id,
+      'entity_vid' => $entity_vid,
+      'entity_label' => entity_label($entity_type, $entity),
+      'entity_type' => $entity_type,
+      'entity_bundle' => $bundle,
+    );
+
+    // If uuid module is available.
+    if ($uuid_exists) {
+      $uuid = entity_get_uuid_by_id($entity_type, array($entity_id));
+      $values[$entity_id]['entity_uuid'] = empty($uuid) ? NULL : reset($uuid);
     }
   }
 
@@ -381,32 +403,30 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
  *   The type of the entity being referenced.
  * @param string|int|object $entity
  *   The ID of the Entity being referenced.
- * @param bool $quote_wrap
- *   Whether the label should be wrapped within quotes if it contains commas or
- *   quotes. Defaults to TRUE.
  *
- * @return string
- *   The assembled label for the reference.
+ * @return string[]
+ *   The assembled label for the reference, and its processed value which will
+ *   differ in case if it contains commas or quotes.
  */
-function entityreference_autocomplete_label_for_reference($entity_type, $entity, $quote_wrap = TRUE) {
+function entityreference_autocomplete_label_for_reference($entity_type, $entity) {
   if (is_numeric($entity)) {
     $entity = entity_load($entity_type, array($entity));
     $entity = reset($entity);
   }
 
   if (!empty($entity)) {
-    list($entity_id) = entity_extract_ids($entity_type, $entity);
+    list($entity_id, $entity_vid, $bundle) = entity_extract_ids($entity_type, $entity);
 
     if (!empty($entity_id)) {
-      $label = entity_label($entity_type, $entity) . " ($entity_id)";
+      $label = $processed = entity_label($entity_type, $entity) . " ($entity_id)";
 
       // Names containing commas, preceding or trailing spaces, or quotes,
       // must be wrapped in quotes.
-      if ($quote_wrap && (strpos($label, ',') !== FALSE || strpos($label, '"') !== FALSE || trim($label) !== $label)) {
-        $label = '"' . str_replace('"', '""', $label) . '"';
+      if (strpos($label, ',') !== FALSE || strpos($label, '"') !== FALSE || trim($label) !== $label) {
+        $processed = '"' . str_replace('"', '""', $label) . '"';
       }
 
-      return $label;
+      return array($processed, $label, $entity_id, $entity_vid, $bundle);
     }
   }
 
@@ -538,4 +558,36 @@ function entityreference_autocomplete_entity_access($op, $entity_type, $entity =
   // not going to be dependent from it just for using "entity_access()". Assume
   // that access is allowed if no explicit checker for this is set.
   return TRUE;
+}
+
+/**
+ * Checks whether element specification is valid.
+ *
+ * Form API start element's building from "#value_callback" if "#value"
+ * property is not set. We're checking element specification there and,
+ * if it's invalid, removing all "#process" and "#element_validate"
+ * functions because they are should not handle incorrect element.
+ *
+ * In case when "#value" is specified for an element, execution of
+ * "#value_callback" will be skipped and we'll have this executed in
+ * one of "#process" callbacks. This allows us to prevent execution of
+ * "#value_callback" and "#element_validate" during form submission.
+ *
+ * @param array $element
+ *   Element definition.
+ *
+ * @return bool
+ *   A state of verification.
+ *
+ * @internal
+ */
+function entityreference_autocomplete_is_element_valid(array &$element) {
+  $valid = !empty($element['#era_entity_type']) && NULL !== entity_get_info($element['#era_entity_type']);
+
+  if (!$valid) {
+    // Element definition is invalid. Stop further processing.
+    unset($element['#process'], $element['#value_callback'], $element['#element_validate']);
+  }
+
+  return $valid;
 }

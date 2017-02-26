@@ -1,11 +1,13 @@
 <?php
 
-namespace Drupal\entityreference_autocomplete\Tests;
+namespace Drupal\entityreference_autocomplete\Tests\Unit;
+
+use Drupal\entityreference_autocomplete\Tests\UnitTest;
 
 /**
  * {@inheritdoc}
  */
-class ProcessCallbackTest extends BaseTest {
+class ProcessCallbackTest extends UnitTest {
 
   /**
    * {@inheritdoc}
@@ -19,47 +21,44 @@ class ProcessCallbackTest extends BaseTest {
   }
 
   /**
+   * Test construction behavior when invalid entity type specified.
+   *
+   * @see entityreference_autocomplete_is_element_valid()
+   */
+  public function testWrongEntityType() {
+    foreach (array('#default_value', '#value') as $value_property) {
+      $this->valueProperty = $value_property;
+      $widget = $this->buildForm('dummy', 1);
+
+      foreach (array('#process', '#value_callback', '#element_validate') as $property) {
+        $this->assertFalse(array_key_exists($property, $widget));
+      }
+    }
+  }
+
+  /**
    * Test consistency of built element.
    */
   public function testProcessCallback() {
-    $data = array();
-
     // Create list of entities, grouped by content type and bundle.
-    foreach (array(
-      'user' => array(
-        'user' => array(
-          $this->drupalCreateUser(),
-        ),
-      ),
-      'node' => array(
-        'page' => array(
-          $this->drupalCreateNode(array('type' => 'page')),
-        ),
-        'article' => array(
-          $this->drupalCreateNode(array('type' => 'article')),
-        ),
-      ),
-    ) as $entity_type => $bundles) {
-      foreach ($bundles as $bundle => $entities) {
-        foreach ($entities as $entity) {
-          list($entity_id) = entity_extract_ids($entity_type, $entity);
-
-          $data[$entity_type][$bundle][] = array(
-            'id' => $entity_id,
-            'label' => entity_label($entity_type, $entity),
-            'object' => $entity,
-          );
-        }
-      }
-    }
+    $data = $this->createEntities();
 
     foreach (array(
       array(
         '#default_value' => NULL,
         '#autocomplete_path' => FALSE,
         '#era_bundles' => array(),
-        '#era_cardinality' => -1,
+        '#era_cardinality' => ENTITYREFERENCE_AUTOCOMPLETE_CARDINALITY_UNLIMITED,
         '#era_entity_type' => NULL,
+        '#value' => FALSE,
+      ),
+      // Non-existent entity type.
+      array(
+        '#default_value' => NULL,
+        '#autocomplete_path' => FALSE,
+        '#era_bundles' => array(),
+        '#era_cardinality' => 900,
+        '#era_entity_type' => 'dummy',
         '#value' => FALSE,
       ),
       array(

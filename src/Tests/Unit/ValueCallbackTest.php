@@ -1,11 +1,13 @@
 <?php
 
-namespace Drupal\entityreference_autocomplete\Tests;
+namespace Drupal\entityreference_autocomplete\Tests\Unit;
+
+use Drupal\entityreference_autocomplete\Tests\UnitTest;
 
 /**
  * {@inheritdoc}
  */
-class ValueCallbackTest extends BaseTest {
+class ValueCallbackTest extends UnitTest {
 
   /**
    * {@inheritdoc}
