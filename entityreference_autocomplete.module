@@ -188,6 +188,8 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
   $query_settings = $element['#era_query_settings'];
   $values = array();
 
+  $realname_exists = module_exists('realname');
+
   foreach ($input_labels as $input_label) {
     list($entity_label) = preg_split('/\s\((\d+)\)$/', $input_label);
 
@@ -196,10 +198,13 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
     $query->entityCondition('entity_type', $entity_type);
 
     // Check if user entered the exact entity id, and add a filter for it.
-    if (preg_match('/.+\((\d+)\)/', $input_label, $matches)) {
+    $exact_id_match = preg_match('/.+\((\d+)\)/', $input_label, $matches);
+    if ($exact_id_match) {
       $query->entityCondition('entity_id', $matches[1]);
     }
-    else {
+
+    // Hack for #2735139 (Realname compatibility).
+    if (($entity_type != 'user') || (!$exact_id_match || !$realname_exists)) {
       $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
       $query->propertyCondition($label_column, $entity_label);
     }
