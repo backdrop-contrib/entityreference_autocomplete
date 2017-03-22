@@ -1,4 +1,0 @@
-.*
-
-# Do not ignore ".gitignore", ".gitmodules" etc.
-!.git*

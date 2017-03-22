@@ -2,37 +2,31 @@
 
 /**
  * @file
- * Autocomplete callback for "entityreference" Form API element.
+ * Autocomplete callback for "entityreference" Form API Elements.
  */
 
 /**
- * Callback for the "#autocomplete_path" of the"entityreference" element.
+ * Page callback for the "entityreference" elements autocomplete path.
  *
  * @param string $entity_type
  *   The type of entity.
- * @param string[] $bundles
+ * @param string $bundles
  *   List of bundles.
- * @param array $query_settings
- *   Query settings.
+ * @param string $encoded_query_settings
+ *   Query string.
  * @param string $string
  *   Search query.
- *
- * @see entityreference_autocomplete_menu()
- * @see entityreference_autocomplete_process_entityreference()
  */
-function entityreference_autocomplete_autocomplete_callback($entity_type, array $bundles, array $query_settings, $string) {
-  // Get entity metadata, to be used for some checks.
-  $entity_info = entity_get_info($entity_type);
-
-  // Entity type is not defined. Bye-bye.
-  if (NULL === $entity_info) {
-    return;
-  }
-
+function entityreference_autocomplete_autocomplete_callback($entity_type, $bundles, $encoded_query_settings, $string = '') {
   // If search string contains a slash "/", menu system will think it's a new
   // argument. In such case, reassemble the whole search string.
-  if (func_num_args() > 4) {
-    $string = implode('/', array_slice(func_get_args(), 3));
+  $args = func_get_args();
+
+  if (count($args) > 4) {
+    array_shift($args);
+    array_shift($args);
+    array_shift($args);
+    $string = implode('/', $args);
   }
 
   $matches = array();
@@ -40,98 +34,101 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, array 
   // can alter the results in any way they want.
   $context = array();
 
+  // Decode the query settings passed and then parse the result string to get
+  // the actual settings array.
+  parse_str(decode_entities(urldecode($encoded_query_settings)), $query_settings);
+
   // The user enters a comma-separated list of entity labels. Autocomplete only
   // the last label.
   $labels_typed = entityreference_autocomplete_explode_tags($string);
   $last_label = drupal_strtolower(array_pop($labels_typed));
 
-  $query = new EntityFieldQuery();
-  $query->entityCondition('entity_type', $entity_type);
-  // Fetch the column to use as label.
-  $query->propertyCondition(entityreference_autocomplete_resolve_entity_label_column($entity_type, $entity_info), $last_label, 'CONTAINS');
-  $query->addMetaData('era_search_string', $last_label);
-  // Add a tag to the query so modules can alter it.
-  $query->addTag('era_query');
-
-  // Save some pain to anyone trying to specify a bundle when the entity
-  // has no actual key for bundles.
-  if (!empty($bundles) && !empty($entity_info['entity keys']['bundle'])) {
-    $query->entityCondition('bundle', $bundles);
+  // Prefix string to add to every result.
+  $prefix = '';
+  if (!empty($last_label)) {
+    $prefix = count($labels_typed) ? implode(', ', $labels_typed) . ', ' : '';
   }
 
-  // Set property conditions, if any.
-  if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
-    foreach ($query_settings['property_conditions'] as $property_condition) {
-      if (is_array($property_condition) && count($property_condition) > 1) {
-        call_user_func_array(array($query, 'propertyCondition'), $property_condition);
+  if (isset($last_label)) {
+    // Get entity metadata, to be used for some checks.
+    $entity_info = entity_get_info($entity_type);
+
+    $query = new EntityFieldQuery();
+    $query->entityCondition('entity_type', $entity_type);
+
+    // If $bundless is not null, add the 'bundle' condition. Also, save some
+    // pain to anyone trying to specify a bundle when the entity has no actual
+    // key for bundles.
+    if ($bundles && !empty($entity_info['entity keys']['bundle'])) {
+      $query->entityCondition('bundle', $bundles);
+    }
+
+    // Fetch the column to use as label.
+    $label_column = entityreference_autocomplete_resolve_entity_label_column($entity_type);
+    $query->propertyCondition($label_column, $last_label, 'CONTAINS');
+
+    // Set property conditions, if any.
+    if (!empty($query_settings['property_conditions']) && is_array($query_settings['property_conditions'])) {
+      foreach ($query_settings['property_conditions'] as $property_condition) {
+        $query->propertyCondition($property_condition[0], $property_condition[1], $property_condition[2]);
       }
     }
-  }
 
-  // Add the field conditions declared.
-  if (!empty($query_settings['field_conditions']) && is_array($query_settings['field_conditions'])) {
-    // @code
-    // array('COLUMN', 'VALUE', 'OPERATOR', 'DELTA_GROUP', 'LANGUAGE_GROUP')
-    // @endcode
-    foreach ($query_settings['field_conditions'] as $field_condition) {
-      if (is_array($field_condition) && count($field_condition) > 0) {
-        call_user_func_array(array($query, 'fieldCondition'), $field_condition);
+    // Add the field conditions declared.
+    if (!empty($query_settings['field_conditions']) && is_array($query_settings['field_conditions'])) {
+      foreach ($query_settings['field_conditions'] as $field_condition) {
+        $column = isset($field_condition[1]) ? $field_condition[1] : NULL;
+        $value = isset($field_condition[2]) ? $field_condition[2] : NULL;
+        $operator = isset($field_condition[3]) ? $field_condition[3] : NULL;
+        $delta_group = isset($field_condition[4]) ? $field_condition[4] : NULL;
+        $language_group = isset($field_condition[5]) ? $field_condition[5] : NULL;
+        $query->fieldCondition($field_condition[0], $column, $value, $operator, $delta_group, $language_group);
       }
     }
-  }
 
-  // Set the maximum number of results returned.
-  if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
-    $query->range(0, $query_settings['limit']);
-  }
-
-  // Execute query and log any unexpected errors.
-  try {
-    $result = $query->execute();
-  }
-  catch (Exception $e) {
-    watchdog_exception('entityreference_autocomplete', $e);
-  }
-
-  if (!empty($result[$entity_type])) {
-    $get_uuid = function_exists('entity_get_uuid_by_id');
-    // Prefix string to add to every result.
-    $prefix = '';
-
-    if (!empty($last_label)) {
-      $prefix = count($labels_typed) ? implode(', ', $labels_typed) . ', ' : '';
+    // Set the maximum number of results returned.
+    if (!empty($query_settings['limit']) && is_numeric($query_settings['limit'])) {
+      $query->range(0, $query_settings['limit']);
     }
 
-    // Iterate through all entities retrieved and process the data to return
-    // it as expected by Drupal javascript.
-    foreach (entity_load($entity_type, array_keys($result[$entity_type])) as $entity) {
-      if (entityreference_autocomplete_entity_access('view', $entity_type, $entity, $entity_info)) {
-        // Get the labels for the key and for the option.
-        list($label, $raw_label, $entity_id, $entity_vid, $bundle) = entityreference_autocomplete_label_for_reference(
-          $entity_type,
-          $entity
-        );
+    // Add a tag to the query so modules can alter it.
+    $query->addTag('era_query');
+    $query->addMetaData('era_search_string', $last_label);
 
-        $result_context = array(
-          'entity' => $entity,
-          'entity_id' => $entity_id,
-          'entity_vid' => $entity_vid,
-          'entity_type' => $entity_type,
-          'entity_uuid' => NULL,
-          'entity_bundle' => $bundle,
-          'rendered_html' => check_plain($raw_label),
-        );
+    // Execute query and log any unexpected errors.
+    try {
+      $result = $query->execute();
+    }
+    catch (Exception $e) {
+      watchdog_exception('entityreference_autocomplete', $e);
+    }
 
-        if ($get_uuid) {
-          $uuids = entity_get_uuid_by_id($entity_type, array($entity_id));
-          $result_context['entity_uuid'] = empty($uuids) ? NULL : reset($uuids);
+    if (!empty($result[$entity_type])) {
+      $entities = entity_load($entity_type, array_keys($result[$entity_type]));
+
+      // Iterate through all entities retrieved and process the data to return
+      // it as expected by Drupal javascript.
+      foreach ($entities as $entity_id => $entity) {
+        if (entity_access('view', $entity_type, $entity)) {
+          // Get the labels for the key and for the option.
+          $option = entityreference_autocomplete_label_for_reference($entity_type, $entity_id, FALSE);
+          $key = entityreference_autocomplete_label_for_reference($entity_type, $entity_id);
+
+          // $prefix . $key is the value that will be set in the textfield in
+          // the browser, whereas $option is the html that is shown to the user
+          // *before* he clicks in one of the options.
+          $matches[$prefix . $key] = check_plain($option);
+
+          // Store metadata about the entity returned in a variable.
+          list(, , $bundle) = entity_extract_ids($entity_type, $entity);
+          $context[$prefix . $key] = array(
+            'entity' => $entity,
+            'entity_id' => $entity_id,
+            'entity_type' => $entity_type,
+            'entity_bundle' => $bundle,
+            'rendered_html' => check_plain($option),
+          );
         }
-
-        // "$prefix . $key" - is the value that will be set in textfield
-        // in browser, whereas "$option" - is HTML that shown to the user
-        // *before* he have chosen one of the options.
-        $matches[$prefix . $label] = $result_context['rendered_html'];
-        $context[$prefix . $label] = $result_context;
       }
     }
   }

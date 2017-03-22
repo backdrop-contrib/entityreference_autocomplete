@@ -19,11 +19,9 @@
  *   index in the array maps to an index in the $matches variables, and contains
  *   the following data:
  *   - entity: full entity object, as loaded via EFQ.
- *   - entity_id: ID of entity.
- *   - entity_vid: ID of entity revision.
+ *   - entity_id: ID of referenced entity.
  *   - entity_type: type of referenced entity.
- *   - entity_uuid: UUID of entity. Can be NULL if "uuid" module disabled.
- *   - entity_bundle: bundle that referenced entity belongs to.
+ *   - entity_bundle: bundle that referenced entity belogns to.
  *   - rendered_html: HTML returned by AJAX selection window.
  *
  * @see entityreference_autocomplete_autocomplete_callback()

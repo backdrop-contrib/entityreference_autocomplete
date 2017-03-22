@@ -1,5 +1,0 @@
-name = Entity Reference Autocomplete (Test)
-hidden = TRUE
-core = 7.x
-
-dependencies[] = entityreference_autocomplete
