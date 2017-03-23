@@ -2,7 +2,7 @@
 
 /**
  * @file
- * A Form API element for referencing entities using an autocomplete textfield.
+ * A Form API element to reference entities using an autocomplete textfield.
  */
 
 /**
@@ -89,38 +89,37 @@ function entityreference_autocomplete_element_info() {
  *   An associative array containing the properties of the element.
  * @param mixed $edit
  *   If the form has been submitted, the value submitted for the element.
+ * @param array $form_state
+ *   An associative array containing the $form_state properties.
  *
- * @return string|bool
+ * @return string
  *   The value to be placed in $element['#value'].
  */
-function entityreference_autocomplete_value_callback(array $element, $edit = FALSE) {
-  // Just process the value when $edit comes as FALSE (no form submission).
-  if (FALSE === $edit && !empty($element['#default_value'])) {
-    // If there are any default values, transform them into proper labels.
-    if (!empty($element['#default_value'])) {
-      // Only one entity referenced.
-      if (is_numeric($element['#default_value'])) {
-        $references_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
-      }
-      // Multiple entities referenced.
-      else if (is_array($element['#default_value'])) {
-        $referenced_labels = array();
-        foreach ($element['#default_value'] as $entity_id) {
-          $referenced_labels[] = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $entity_id);
-        }
-        $references_label = implode(', ', array_filter($referenced_labels));
-      }
-
-      // Labels assembled.
-      if (!empty($references_label)) {
-        return $references_label;
-      }
-      // This should never be reached, but if it's, return whatever default
-      // value was specified.
-      else {
-        return $element['#default_value'];
-      }
+function entityreference_autocomplete_value_callback(array $element, $edit = FALSE, &$form_state) {
+  // Just process the value when $edit comes as FALSE (no form submission), and
+  // if there are default values specified, transform them into proper labels.
+  if ($edit === FALSE && !empty($element['#default_value'])) {
+    // Only one entity referenced.
+    if (is_numeric($element['#default_value'])) {
+      $references_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
     }
+    // Multiple entities referenced.
+    elseif (is_array($element['#default_value'])) {
+      $referenced_labels = array();
+      foreach ($element['#default_value'] as $entity_id) {
+        $referenced_labels[] = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $entity_id);
+      }
+      $references_label = implode(', ', array_filter($referenced_labels));
+    }
+
+    // Labels assembled.
+    if (!empty($references_label)) {
+      return $references_label;
+    }
+
+    // This should never be reached, but if it's, return whatever default
+    // value was specified.
+    return $element['#default_value'];
   }
 
   // The user submitted a value for the element. Return it as is.
@@ -132,11 +131,13 @@ function entityreference_autocomplete_value_callback(array $element, $edit = FAL
  *
  * @param array $element
  *   An associative array containing the properties of the element.
+ * @param array $form_state
+ *   An associative array containing the $form_state properties.
  *
  * @return array
  *   The processed element.
  */
-function entityreference_autocomplete_process_entityreference(array $element) {
+function entityreference_autocomplete_process_entityreference(array $element, &$form_state) {
   if (!empty($element['#era_entity_type'])) {
     // Set the autocomplete path based on the entity type to look for.
     $autocomplete_path = 'entityreference_autocomplete/autocomplete/' . $element['#era_entity_type'];
@@ -164,11 +165,10 @@ function entityreference_autocomplete_process_entityreference(array $element) {
  * Form element validation handler for "entityreference" elements.
  *
  * Note that #required is validated by core.
- *
- * {@inheritdoc}
  */
 function entityreference_autocomplete_validate_entityreference(array &$element, array &$form_state) {
-  $input_labels = entityreference_autocomplete_explode_tags($element['#value'], TRUE);
+  $labels_string = $element['#value'];
+  $input_labels = entityreference_autocomplete_explode_tags($labels_string, TRUE);
 
   // If there are more values than the allowed, set an error and return. No need
   // to validate each of the values.
@@ -254,12 +254,14 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
         $multiples = array();
 
         foreach ($matching_entities as $id => $entity) {
-          $multiples[] = $entity->{$label_column} . " ($id)";
+          $multiples[] = $entity->{$label_column} . ' (' . $id . ')';
         }
 
-        form_error($element, t('Multiple entities match this reference; "%multiple". Specify the one you want by appending the ID in parentheses, like "@value (@id)"', array(
-          '%multiple' => implode('", "', $multiples),
-        )));
+        form_error($element, t('Multiple entities match this reference; "%multiple". 
+          Specify the one you want by appending the ID in parentheses, like "@value (@id)"',
+          array(
+            '%multiple' => implode('", "', $multiples),
+          )));
       }
       else {
         $entity = current($matching_entities);
@@ -284,7 +286,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
           // If uuid module is available.
           if ($uuid_exists) {
             $uuid = entity_get_uuid_by_id($entity_type, array($entity_id));
-            $values[$entity_id]['entity_uuid'] = empty($uuid) ? NULL : reset($uuid);
+            $values[$entity_id]['entity_uuid'] = !empty($uuid) ? reset($uuid) : NULL;
           }
         }
       }
@@ -292,7 +294,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
   }
 
   // If there's only one allowed, return values into the element's index.
-  $values = 1 === $element['#era_cardinality'] ? current($values) : $values;
+  $values = ($element['#era_cardinality'] === 1) ? current($values) : $values;
   form_set_value($element, $values, $form_state);
 }
 
@@ -312,21 +314,15 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
  */
 function entityreference_autocomplete_label_for_reference($entity_type, $entity_id, $quote_wrap = TRUE) {
   if ($entity_referenced = entity_load_single($entity_type, $entity_id)) {
-    $reference_label = entity_label($entity_type, $entity_referenced) . " ($entity_id)";
+    $reference_label = entity_label($entity_type, $entity_referenced) . ' (' . $entity_id . ')';
 
     // Names containing commas, preceding or trailing spaces, or quotes, must be
     // wrapped in quotes.
-    if (
-      $quote_wrap &&
-      (
-        strpos($reference_label, ',') !== FALSE ||
-        strpos($reference_label, '"') !== FALSE ||
-        trim($reference_label) !== $reference_label
-      )
-    ) {
+    $punctuation_included = (strpos($reference_label, ',') !== FALSE || strpos($reference_label, '"') !== FALSE || trim($reference_label) !== $reference_label);
+
+    if ($quote_wrap && $punctuation_included) {
       $reference_label = '"' . str_replace('"', '""', $reference_label) . '"';
     }
-
     return $reference_label;
   }
 
@@ -385,7 +381,7 @@ function entityreference_autocomplete_resolve_entity_label_column($entity_type) 
  * returned, unless it's explicitly requested.
  *
  * @param string $tags
- *   Array of tags to explode.
+ *   String of tags to explode.
  * @param bool $remove_escape_formatting
  *   Flag indicating whether to remove the escape formatting for the tags.
  *

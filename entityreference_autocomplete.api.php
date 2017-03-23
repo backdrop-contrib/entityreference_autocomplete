@@ -6,11 +6,11 @@
  */
 
 /**
- * Allows modules to alter the AJAX results returned by "entityreference" field.
+ * Allows modules to alter AJAX results returned by "entityreference" fields.
  *
- * Use this hook to alter the data returned to users in "entityreference" field,
- * for example to add some nice markup to the data, or prevent some results from
- * being returned at all.
+ * Use this hook to alter the data returned to users in an "entityreference"
+ * field, for example to add some nice markup to the data, or prevent some
+ * results from being returned at all.
  *
  * @param string[] $matches
  *   An associative array of results to return in an "entityreference" field.
@@ -21,8 +21,8 @@
  *   - entity: full entity object, as loaded via EFQ.
  *   - entity_id: ID of referenced entity.
  *   - entity_type: type of referenced entity.
- *   - entity_bundle: bundle that referenced entity belogns to.
- *   - rendered_html: HTML returned by AJAX selection window.
+ *   - entity_bundle: bundle that referenced entity belongs to.
+ *   - rendered_html: HTML returned in the AJAX selection window.
  *
  * @see entityreference_autocomplete_autocomplete_callback()
  */

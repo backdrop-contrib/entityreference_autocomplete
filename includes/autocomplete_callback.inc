@@ -13,7 +13,7 @@
  * @param string $bundles
  *   List of bundles.
  * @param string $encoded_query_settings
- *   Query string.
+ *   Query settings string.
  * @param string $string
  *   Search query.
  */
