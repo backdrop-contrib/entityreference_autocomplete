@@ -67,10 +67,6 @@ function entityreference_autocomplete_element_info() {
     ),
   );
 
-  // Since Drupal core 7.39, additional processing is necessary for
-  // autocomplete text fields. See https://www.drupal.org/node/2561431
-  // In prior versions of Drupal core, form_process_autocomplete() is not
-  // available.
   if (function_exists('form_process_autocomplete')) {
     $types['entityreference']['#process'][] = 'form_process_autocomplete';
   }
@@ -257,7 +253,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
           $multiples[] = $entity->{$label_column} . ' (' . $id . ')';
         }
 
-        form_error($element, t('Multiple entities match this reference; "%multiple". 
+        form_error($element, t('Multiple entities match this reference; "%multiple".
           Specify the one you want by appending the ID in parentheses, like "@value (@id)"',
           array(
             '%multiple' => implode('", "', $multiples),
@@ -313,7 +309,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
  *   The assembled label for the reference.
  */
 function entityreference_autocomplete_label_for_reference($entity_type, $entity_id, $quote_wrap = TRUE) {
-  if ($entity_referenced = entity_load_single($entity_type, $entity_id)) {
+  if ($entity_referenced = entity_load($entity_type, $entity_id)) {
     $reference_label = entity_label($entity_type, $entity_referenced) . ' (' . $entity_id . ')';
 
     // Names containing commas, preceding or trailing spaces, or quotes, must be
@@ -343,8 +339,12 @@ function entityreference_autocomplete_resolve_entity_label_column($entity_type) 
   $entity_info = entity_get_info($entity_type);
   $label_column = FALSE;
 
+  // For some reason Backdrop autocompletes for nid instead of node title 
+  if($entity_type === 'node') {
+    $label_column = 'title';
+  }
   // Check if the entity has a label column defined.
-  if (isset($entity_info['entity keys']['label'])) {
+  else if (isset($entity_info['entity keys']['label'])) {
     $label_column = $entity_info['entity keys']['label'];
   }
   // Interesting that Drupal's core doesn't define any label for users, is

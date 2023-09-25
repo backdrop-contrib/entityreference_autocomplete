@@ -41,7 +41,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
   // The user enters a comma-separated list of entity labels. Autocomplete only
   // the last label.
   $labels_typed = entityreference_autocomplete_explode_tags($string);
-  $last_label = drupal_strtolower(array_pop($labels_typed));
+  $last_label = backdrop_strtolower(array_pop($labels_typed));
 
   // Prefix string to add to every result.
   $prefix = '';
@@ -107,7 +107,7 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
       $entities = entity_load($entity_type, array_keys($result[$entity_type]));
 
       // Iterate through all entities retrieved and process the data to return
-      // it as expected by Drupal javascript.
+      // it as expected by Backdrop javascript.
       foreach ($entities as $entity_id => $entity) {
         if (entity_access('view', $entity_type, $entity)) {
           // Get the labels for the key and for the option.
@@ -133,8 +133,8 @@ function entityreference_autocomplete_autocomplete_callback($entity_type, $bundl
     }
   }
 
-  // Let other drupal modules alter the results.
-  drupal_alter('entityreference_autocomplete_matches', $matches, $context);
-  // Finally, output matches in json, as they're are expected by Drupal's ajax.
-  drupal_json_output($matches);
+  // Let other backdrop modules alter the results.
+  backdrop_alter('entityreference_autocomplete_matches', $matches, $context);
+  // Finally, output matches in json, as they're expected by Backdrop's ajax.
+  backdrop_json_output($matches);
 }

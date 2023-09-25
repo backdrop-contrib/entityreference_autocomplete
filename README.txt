@@ -1,6 +1,8 @@
 
-Written by Salvador Molina <salvador.molinamoreno@codeenigma.com>
+Originally written for Drupal 7 by Salvador Molina <salvador.molinamoreno@codeenigma.com>
                            <drupal.org: https://drupal.org/user/826088>
+
+Ported to Backdrop 1.x by João Batalha <jbatalha@inventa.com>
 
 
 CONTENTS OF THIS FILE
@@ -27,10 +29,10 @@ INSTALLATION
 
 To install the Entity Reference Autocomplete module:
 
- 1. Place its entire folder into the "sites/all/modules/contrib" folder of your
-    drupal installation.
+ 1. Place its entire folder into the "modules/contrib" folder of your
+    Backdrop installation.
 
- 2. In your Drupal site, navigate to "admin/modules", search the "Entity
+ 2. In your Backdrop site, navigate to "admin/modules", search the "Entity
     Reference Autocomplete" module, and enable it.
 
  3. Click on "Save configuration".
@@ -41,7 +43,7 @@ USAGE
 
 After installing the module:
 
-  1. Create any form you want in the usual way through drupal_get_form().
+  1. Create any form you want in the usual way through backdrop_get_form().
 
   2. To define an entityreference field, declare it as any other form element,
      specifying 'entityreference' in the '#type' property of the element. E.g:
