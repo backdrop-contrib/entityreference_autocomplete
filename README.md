@@ -1,4 +1,4 @@
-The Name of My Project
+Entityreference Autocomplete
 ======================
 
 This module defines a new form element type, called "entityreference", that
