@@ -21,7 +21,7 @@ function entityreference_autocomplete_menu() {
     'page callback' => 'entityreference_autocomplete_autocomplete_callback',
     'page arguments' => array(2, 3, 4),
     'access arguments' => array('access content'),
-    'file' => 'includes/autocomplete_callback.inc',
+    'file' => 'entityreference_autocomplete.callback.inc',
     'type' => MENU_CALLBACK,
   );
 
@@ -29,7 +29,8 @@ function entityreference_autocomplete_menu() {
 }
 
 /**
- * Returns a list of bundles from the "entityreference_autocomplete" path.
+ * Magic loader: Returns a list of bundles from the
+ * "entityreference_autocomplete" path.
  *
  * @param string $bundles_string
  *   List of bundles.
@@ -187,7 +188,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
   $realname_exists = module_exists('realname');
 
   foreach ($input_labels as $input_label) {
-    list($entity_label) = preg_split('/\s\((\d+)\)$/', $input_label);
+    [$entity_label] = preg_split('/\s\((\d+)\)$/', $input_label);
 
     // Query the database to see which entities match.
     $query = new EntityFieldQuery();
@@ -261,7 +262,7 @@ function entityreference_autocomplete_validate_entityreference(array &$element, 
       }
       else {
         $entity = current($matching_entities);
-        list($entity_id, , $bundle) = entity_extract_ids($entity_type, $entity);
+        [$entity_id, , $bundle] = entity_extract_ids($entity_type, $entity);
 
         // User doesn't have read (view) access to it, set same error as the one
         // for no matches, since we don't want to reveal that the entity exists.
@@ -339,7 +340,7 @@ function entityreference_autocomplete_resolve_entity_label_column($entity_type) 
   $entity_info = entity_get_info($entity_type);
   $label_column = FALSE;
 
-  // For some reason Backdrop autocompletes for nid instead of node title 
+  // For some reason Backdrop autocompletes for nid instead of node title
   if($entity_type === 'node') {
     $label_column = 'title';
   }
