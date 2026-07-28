@@ -92,10 +92,10 @@ function entityreference_autocomplete_element_info() {
  * @return string
  *   The value to be placed in $element['#value'].
  */
-function entityreference_autocomplete_value_callback(array $element, $edit = FALSE, &$form_state) {
-  // Just process the value when $edit comes as FALSE (no form submission), and
-  // if there are default values specified, transform them into proper labels.
-  if ($edit === FALSE && !empty($element['#default_value'])) {
+function entityreference_autocomplete_value_callback(array $element, $edit = FALSE) {
+   // Just process the value when $edit comes as FALSE (no form submission), and
+   // if there are default values specified, transform them into proper labels.
+   if ($edit === FALSE && !empty($element['#default_value'])) {
     // Only one entity referenced.
     if (is_numeric($element['#default_value'])) {
       $references_label = entityreference_autocomplete_label_for_reference($element['#era_entity_type'], $element['#default_value']);
