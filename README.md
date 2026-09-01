@@ -146,6 +146,7 @@ Current Maintainers
 -------------------
 
 - [João Batalha](https://github.com/jbatalha1).
+- [Joe Wickert](https://github.com/joewickert).
 
 Credits
 -------
